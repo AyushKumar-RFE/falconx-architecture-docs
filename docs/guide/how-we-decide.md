@@ -40,4 +40,4 @@ Skip an ADR for pure refactors, bugfixes, and docs-only typo fixes — still upd
 
 - [ADR template](/adr/template)
 - [Updating the SSOT](/guide/updating-ssot)
-- [Confluence import](/confluence/import-workflow) (inbox → git, not the reverse as SSOT)
+- [How to use](/guide/how-to-use)

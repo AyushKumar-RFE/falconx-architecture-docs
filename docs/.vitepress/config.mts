@@ -12,19 +12,19 @@ export default withMermaid(
     themeConfig: {
       nav: [
         { text: 'Home', link: '/' },
-        { text: 'Guide', link: '/guide/how-we-decide' },
+        { text: 'How to use', link: '/guide/how-to-use' },
         { text: 'C4', link: '/c4/' },
         { text: 'Catalog', link: '/catalog/services' },
         { text: 'Flows', link: '/flows/' },
         { text: 'Infra', link: '/infra/' },
         { text: 'ADRs', link: '/adr/' },
-        { text: 'Confluence', link: '/confluence/' },
       ],
       sidebar: {
         '/guide/': [
           {
             text: 'Guide',
             items: [
+              { text: 'How to use this site', link: '/guide/how-to-use' },
               { text: 'How we decide', link: '/guide/how-we-decide' },
               { text: 'Reading this site', link: '/guide/reading-this-site' },
               { text: 'Updating the SSOT', link: '/guide/updating-ssot' },
@@ -89,22 +89,12 @@ export default withMermaid(
             ],
           },
         ],
-        '/confluence/': [
-          {
-            text: 'Confluence bridge',
-            items: [
-              { text: 'Overview', link: '/confluence/' },
-              { text: 'Connect MCP', link: '/confluence/connect-mcp' },
-              { text: 'Import workflow', link: '/confluence/import-workflow' },
-              { text: 'Hub page template', link: '/confluence/hub-template' },
-            ],
-          },
-        ],
       },
       socialLinks: [],
       search: { provider: 'local' },
       editLink: {
-        pattern: 'https://github.com/rfetechnology/falconx-architecture-docs/edit/main/docs/:path',
+        pattern:
+          'https://github.com/AyushKumar-RFE/falconx-architecture-docs/edit/main/docs/:path',
         text: 'Edit this page',
       },
       footer: {
