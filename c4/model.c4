@@ -1,9 +1,41 @@
-// FalconX C4 model (LikeC4) — `npm run c4:dev` / `npm run c4:validate`
+// FalconX C4 model (LikeC4) — AWS cloud deploy + icons
+// Run: npm run c4:dev | npm run c4:validate | npm run build
 
 specification {
-  element actor
-  element system
-  element component
+  element actor {
+    style {
+      shape person
+      color secondary
+    }
+  }
+  element system {
+    style {
+      color muted
+    }
+  }
+  // Apps / APIs on EKS (Argo/Helm)
+  element eks {
+    style {
+      shape rectangle
+      icon aws:elastic-kubernetes-service
+      color primary
+    }
+  }
+  // AWS Lambda (settlement path; LocalStack locally)
+  element lambda {
+    style {
+      shape rectangle
+      icon aws:lambda
+      color amber
+    }
+  }
+  // Data stores / buses
+  element store {
+    style {
+      shape storage
+      color indigo
+    }
+  }
 }
 
 model {
@@ -22,128 +54,160 @@ model {
   }
 
   falconx = system 'FalconX' {
-    description 'Sports betting platform — market data, wagering, settlement, frontends'
+    description 'Sports betting platform on AWS — EKS workloads, Lambda settlement, Aurora/ElastiCache/MSK'
+    icon aws:cloud-formation
 
-    feB2C = component 'Frontend-B2C' {
-      technology 'Next.js'
+    // ── Frontends (EKS) ──────────────────────────────────────────
+    feB2C = eks 'Frontend-B2C' {
+      technology 'Next.js · EKS'
       description 'Customer UI (:3001 local fullstack)'
-      style { shape browser }
+      style {
+        shape browser
+        icon tech:nextjs
+      }
     }
-    feB2B = component 'Frontend-B2B' {
-      technology 'Next.js'
+    feB2B = eks 'Frontend-B2B' {
+      technology 'Next.js · EKS'
       description 'B2B / operator UI (:3000 local fullstack)'
-      style { shape browser }
+      style {
+        shape browser
+        icon tech:nextjs
+      }
     }
-    backOffice = component 'BackOffice' {
-      technology 'Go'
+    backOffice = eks 'BackOffice' {
+      technology 'Go · EKS'
       description 'Back-office APIs'
+      style { icon tech:go }
     }
 
-    userSvc = component 'User' {
-      technology 'Python / FastAPI'
+    // ── Money path ───────────────────────────────────────────────
+    userSvc = eks 'User' {
+      technology 'Python / FastAPI · EKS'
       description 'Identity, wallets, hierarchy (:8001)'
+      style { icon tech:python }
     }
-    bettingEngine = component 'BettingEngine' {
-      technology 'Python / FastAPI + SAM lambdas'
-      description 'Place bets, settlement orchestration (:8002)'
+    bettingEngine = eks 'BettingEngine' {
+      technology 'Python / FastAPI · EKS'
+      description 'Place bets + settlement orchestration API (:8002). Triggers Lambda settlement.'
+      style { icon tech:python }
     }
-    bets = component 'Bets' {
-      technology 'Go / Fiber'
+    bets = eks 'Bets' {
+      technology 'Go / Fiber · EKS'
       description 'Bets API; schema owned by BettingEngine'
+      style { icon tech:go }
     }
-    settlement = component 'Settlement lambdas' {
-      technology 'AWS Lambda / LocalStack'
-      description 'Async settlement workers'
+    settlement = lambda 'Settlement lambdas' {
+      technology 'AWS Lambda (+ LocalStack locally)'
+      description 'Async settlement workers (EventBridge → SQS → Lambda). Secrets read at runtime.'
     }
 
-    betfairStreaming = component 'BetfairStreaming' {
-      technology 'Go'
-      description 'stream | catalogue-sync | dlq-worker'
+    // ── Odds & catalogue ─────────────────────────────────────────
+    betfairStreaming = eks 'BetfairStreaming' {
+      technology 'Go · EKS'
+      description 'stream (push) | catalogue-sync (loop) | dlq-worker'
+      style { icon tech:go }
     }
-    dataAggregator = component 'DataAggregator' {
-      technology 'Go'
-      description 'Kafka consumer → aggregated market data'
+    dataAggregator = eks 'DataAggregator' {
+      technology 'Go · EKS'
+      description 'Kafka consumer → aggregated market data (event-driven, not polling)'
+      style { icon tech:go }
     }
-    markets = component 'Markets' {
-      technology 'Go'
+    markets = eks 'Markets' {
+      technology 'Go · EKS'
       description 'Market catalogue / read API (:8012)'
+      style { icon tech:go }
     }
-    marketsProxy = component 'MarketsProxy' {
-      technology 'Go'
+    marketsProxy = eks 'MarketsProxy' {
+      technology 'Go · EKS'
       description 'Proxy in front of markets path'
+      style { icon tech:go }
     }
-    frontMarket = component 'FrontMarket' {
-      technology 'Go'
-      description 'Market read + odds SSE (:8010)'
+    frontMarket = eks 'FrontMarket' {
+      technology 'Go · EKS'
+      description 'Market read + odds SSE hub (:8010)'
+      style { icon tech:go }
     }
-    bookmakerData = component 'BookmakerData' {
-      technology 'Python / FastAPI'
-      description 'Bookmaker odds API + worker (:8003)'
+    bookmakerData = eks 'BookmakerData' {
+      technology 'Python / FastAPI · EKS'
+      description 'Bookmaker odds API + worker (:8003). Worker polls/feeds upstream (VPN in some stacks).'
+      style { icon tech:python }
     }
-    fancyData = component 'FancyData' {
-      technology 'Python / FastAPI'
-      description 'Fancy markets API + worker (:8004)'
+    fancyData = eks 'FancyData' {
+      technology 'Python / FastAPI · EKS'
+      description 'Fancy markets API + worker (:8004). Worker polls/feeds upstream (VPN in some stacks).'
+      style { icon tech:python }
     }
-    manualData = component 'ManualDataManagement' {
-      technology 'Python / FastAPI'
+    manualData = eks 'ManualDataManagement' {
+      technology 'Python / FastAPI · EKS'
       description 'Operator odds/suspend overrides (:8008)'
+      style { icon tech:python }
     }
-    emulators = component 'emulators' {
-      technology 'Go'
-      description 'Betfair mock REST/stream (local/CI)'
+    emulators = eks 'emulators' {
+      technology 'Go · local/CI only'
+      description 'Betfair mock REST/stream — not a prod AWS service'
+      style {
+        icon tech:go
+        color muted
+      }
     }
 
-    casino = component 'CasinoManagement' {
-      technology 'Python / FastAPI'
+    // ── Other product APIs (EKS) ─────────────────────────────────
+    casino = eks 'CasinoManagement' {
+      technology 'Python / FastAPI · EKS'
       description 'Casino management (:8005)'
+      style { icon tech:python }
     }
-    liveScore = component 'LiveScore' {
-      technology 'Python / FastAPI'
+    liveScore = eks 'LiveScore' {
+      technology 'Python / FastAPI · EKS'
       description 'Live scores (:8006)'
+      style { icon tech:python }
     }
-    liveTv = component 'LiveTV' {
-      technology 'Python / FastAPI'
+    liveTv = eks 'LiveTV' {
+      technology 'Python / FastAPI · EKS'
       description 'Live TV (:8007)'
+      style { icon tech:python }
     }
 
-    postgres = component 'Postgres' {
-      technology 'PostgreSQL / Aurora'
-      description 'System of record'
+    // ── AWS data plane ───────────────────────────────────────────
+    postgres = store 'Aurora PostgreSQL' {
+      technology 'Amazon Aurora (PostgreSQL)'
+      description 'System of record (local: Postgres :5432)'
+      icon aws:aurora
+    }
+    redis = store 'ElastiCache Valkey' {
+      technology 'Amazon ElastiCache (Valkey)'
+      description 'Odds cache, pub/sub, sessions (local: Valkey :6379)'
+      icon aws:elasti-cache
       style { shape storage }
     }
-    redis = component 'Redis / Valkey' {
-      technology 'Valkey'
-      description 'Odds cache, pub/sub, sessions'
-      style { shape storage }
-    }
-    kafka = component 'Kafka / MSK' {
-      technology 'Kafka'
-      description 'Async integration bus'
-      style { shape storage }
+    kafka = store 'Amazon MSK' {
+      technology 'Amazon MSK (Kafka)'
+      description 'Async integration bus (local: Kafka :9092)'
+      icon aws:managed-streaming-for-apache-kafka
+      style { shape queue }
     }
 
     // Client → API
-    feB2C -> bettingEngine 'Place bets'
-    feB2C -> frontMarket 'Markets / SSE'
-    feB2C -> userSvc 'Auth / wallet'
-    feB2B -> backOffice 'Operate'
+    feB2C -> bettingEngine 'Place bets (HTTPS)'
+    feB2C -> frontMarket 'Markets / SSE (push to browser)'
+    feB2C -> userSvc 'Auth / wallet (HTTPS)'
+    feB2B -> backOffice 'Operate (HTTPS)'
 
     // Money
     bettingEngine -> userSvc 'Limits / balances'
     bettingEngine -> bets 'Persist bets'
-    bettingEngine -> settlement 'Settle'
-    bettingEngine -> kafka 'Events'
+    bettingEngine -> settlement 'Settle via EventBridge/SQS (async)'
+    bettingEngine -> kafka 'Domain events (produce)'
     settlement -> userSvc 'Balance updates'
     settlement -> postgres 'Writes'
     bets -> postgres 'Reads/writes'
     userSvc -> postgres 'Reads/writes'
     userSvc -> redis 'Cache'
 
-    // Odds / catalogue
-    betfairStreaming -> kafka 'Market updates'
-    betfairStreaming -> redis 'Odds / notices'
-    betfairStreaming -> postgres 'Catalogue'
-    dataAggregator -> kafka 'Consumes'
+    betfairStreaming -> kafka 'Market updates (produce)'
+    betfairStreaming -> redis 'Odds blobs / change notices'
+    betfairStreaming -> postgres 'Catalogue upserts'
+    dataAggregator -> kafka 'Consumes (event-driven)'
     dataAggregator -> postgres 'Aggregates'
     bookmakerData -> redis 'Publish odds'
     fancyData -> redis 'Publish odds'
@@ -152,30 +216,51 @@ model {
     frontMarket -> markets 'Catalogue'
     marketsProxy -> markets 'Proxy'
     markets -> postgres 'Catalogue'
-    emulators -> betfairStreaming 'Emulator lane'
+    emulators -> betfairStreaming 'Emulator lane (local/CI only)'
   }
 
   customer -> falconx.feB2C 'Uses'
   operator -> falconx.feB2B 'Uses'
   operator -> falconx.backOffice 'Uses'
-  betfair -> falconx.betfairStreaming 'Stream + catalogue'
-  bookmakerFeeds -> falconx.bookmakerData 'Odds'
-  bookmakerFeeds -> falconx.fancyData 'Fancy'
+
+  // External feeds — push vs poll (amber dotted = poll/sync loop)
+  betfair -> falconx.betfairStreaming 'Market stream (push)'
+  betfair -> falconx.betfairStreaming 'Catalogue sync loop (poll/reconcile — set interval in service config)' {
+    style {
+      color amber
+      line dotted
+    }
+  }
+  bookmakerFeeds -> falconx.bookmakerData 'Odds feed / poll upstream (interval in worker config)' {
+    style {
+      color amber
+      line dotted
+    }
+  }
+  bookmakerFeeds -> falconx.fancyData 'Fancy feed / poll upstream (interval in worker config)' {
+    style {
+      color amber
+      line dotted
+    }
+  }
 }
 
 views {
   view index {
     title 'FalconX — System context'
+    description 'AWS-hosted sports betting platform and its external actors/systems'
     include *
   }
 
   view of falconx {
-    title 'FalconX — Containers'
+    title 'FalconX — Containers (AWS)'
+    description 'EKS (apps) · Lambda (settlement) · Aurora · ElastiCache · MSK. Amber dotted edges = poll/sync loops.'
     include *
   }
 
   view money of falconx {
     title 'Money path'
+    description 'EKS APIs + Lambda settlement + Aurora/ElastiCache/MSK'
     include
       customer,
       feB2C,
@@ -190,6 +275,7 @@ views {
 
   view odds of falconx {
     title 'Odds & catalogue'
+    description 'Push stream vs poll/sync (amber dotted). Confirm exact intervals in each worker/service config.'
     include
       betfair,
       emulators,
