@@ -1,49 +1,45 @@
 # FalconX Architecture Docs (SSOT)
 
-Git-hosted **single source of truth** for FalconX architecture:
+Git-hosted **single source of truth** for FalconX architecture, published as a **team website** (docs + interactive C4).
 
-- **C4 as code** (LikeC4) — interactive diagrams  
+- **C4 as code** (LikeC4)  
 - **ADRs** — how the team decides after launch  
-- **Service catalog, critical flows, infra** — engineer-facing  
+- **Service catalog, critical flows, infra**
 
-## How to use (quick)
+## For the team (read / discuss)
+
+1. Open the GitHub Pages URL (after enable — see [how to use](docs/guide/how-to-use.md)):
+   - Docs: `https://ayushkumar-rfe.github.io/falconx-architecture-docs/`
+   - Diagrams: `https://ayushkumar-rfe.github.io/falconx-architecture-docs/c4-workspace/`
+2. Discuss via **PRs**, **ADRs**, and optional **GitHub Discussions**.
+3. Change architecture by editing this repo and merging to `main` — the site redeploys automatically.
+
+## For authors (local)
 
 ```bash
 git clone https://github.com/AyushKumar-RFE/falconx-architecture-docs.git
 cd falconx-architecture-docs
 npm install
-npm run docs:dev    # docs site  → http://localhost:5173
-npm run c4:dev      # interactive C4 diagrams
+DOCS_BASE=/ npm run docs:dev
+npm run c4:dev
 ```
-
-Full walkthrough: [docs/guide/how-to-use.md](docs/guide/how-to-use.md)
 
 ```bash
-npm run build       # validate + static site
+npm run build    # same output CI publishes to Pages
 ```
+
+## Enable hosting (once)
+
+Repo **Settings → Pages → Source: GitHub Actions**, then push to `main`. Details: [docs/guide/how-to-use.md](docs/guide/how-to-use.md).
 
 ## Layout
 
 ```
-c4/model.c4                 # LikeC4 model (diagram SSOT)
-docs/                       # VitePress content
-  guide/                    # how to use / decide / update
-  c4/                       # how to read the model
-  catalog/                  # services, libs, legacy
-  flows/                    # place-settle, odds, catalogue
-  infra/                    # envs, stores, deploy, local stack
-  adr/                      # decisions
-.github/workflows/docs.yml  # validate + build
+c4/model.c4                      # LikeC4 model
+docs/                            # VitePress pages
+docs/public/c4-workspace/        # built interactive diagrams (CI)
+.github/workflows/docs.yml       # build + GitHub Pages deploy
 ```
-
-## Relationship to Local-dev-setup
-
-| Concern | Where |
-|---|---|
-| Run the stack | `Local-dev-setup` |
-| Agent/ops micro-context | `Local-dev-setup/.claude/context/...` |
-| **Product architecture SSOT** | **This repo** |
-| AWS/K8s config | `rfetech-infra` / `rfetech-gitops` |
 
 ## License
 

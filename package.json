@@ -9,9 +9,10 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "c4:dev": "likec4 start c4",
-    "c4:build": "likec4 build c4 -o docs/public/c4",
+    "c4:build": "likec4 build c4 -o docs/public/c4-workspace",
     "c4:validate": "likec4 validate c4",
-    "build": "npm run c4:build && npm run docs:build"
+    "build": "npm run c4:build && npm run docs:build",
+    "docs:dev:hosted": "DOCS_BASE=/falconx-architecture-docs/ vitepress dev docs"
   },
   "devDependencies": {
     "likec4": "^1.36.0",

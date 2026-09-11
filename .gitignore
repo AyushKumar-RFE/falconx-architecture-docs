@@ -3,6 +3,7 @@ dist/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 docs/public/c4/
+docs/public/c4-workspace/
 .DS_Store
 .env
 .env.*

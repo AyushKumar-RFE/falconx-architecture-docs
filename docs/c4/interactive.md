@@ -1,18 +1,21 @@
 # Interactive C4 workspace
 
-## Local (best)
+## On the shared website (team)
+
+After Pages deploy, open:
+
+**`/c4-workspace/`** on the hosted site  
+
+(or use the nav link **Open diagrams**).
+
+That is the interactive LikeC4 app: zoom, switch **System context / Containers / Money path / Odds** views, click services.
+
+## Local (authors)
 
 ```bash
 npm install
-npm run c4:dev
+npm run c4:dev          # live editor UI while changing model.c4
+npm run c4:build        # writes docs/public/c4-workspace for the docs site
 ```
 
-LikeC4 opens a browser UI: zoom, filter, and navigate context → containers → focused views.
-
-## Embedded export (docs site)
-
-After `npm run c4:build`, static assets land in `docs/public/c4/`.
-
-After export, open the built workspace at [`/c4/`](/c4/) (served from `docs/public/c4` when using `npm run docs:dev`).
-
-If that link 404s, run `npm run c4:build` then `npm run docs:dev` again.
+Model source of truth: `c4/model.c4` — change it in a PR; CI rebuilds the hosted workspace.
