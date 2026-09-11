@@ -1,0 +1,210 @@
+// FalconX C4 model (LikeC4) — `npm run c4:dev` / `npm run c4:validate`
+
+specification {
+  element actor
+  element system
+  element component
+}
+
+model {
+  customer = actor 'Customer' {
+    description 'Places bets and watches markets via B2C'
+  }
+  operator = actor 'Operator' {
+    description 'Back-office and B2B operations'
+  }
+
+  betfair = system 'Betfair' {
+    description 'Exchange streaming + catalogue APIs (or emulator locally)'
+  }
+  bookmakerFeeds = system 'Bookmaker / Fancy feeds' {
+    description 'Third-party odds feeds; often via VPN'
+  }
+
+  falconx = system 'FalconX' {
+    description 'Sports betting platform — market data, wagering, settlement, frontends'
+
+    feB2C = component 'Frontend-B2C' {
+      technology 'Next.js'
+      description 'Customer UI (:3001 local fullstack)'
+      style { shape browser }
+    }
+    feB2B = component 'Frontend-B2B' {
+      technology 'Next.js'
+      description 'B2B / operator UI (:3000 local fullstack)'
+      style { shape browser }
+    }
+    backOffice = component 'BackOffice' {
+      technology 'Go'
+      description 'Back-office APIs'
+    }
+
+    userSvc = component 'User' {
+      technology 'Python / FastAPI'
+      description 'Identity, wallets, hierarchy (:8001)'
+    }
+    bettingEngine = component 'BettingEngine' {
+      technology 'Python / FastAPI + SAM lambdas'
+      description 'Place bets, settlement orchestration (:8002)'
+    }
+    bets = component 'Bets' {
+      technology 'Go / Fiber'
+      description 'Bets API; schema owned by BettingEngine'
+    }
+    settlement = component 'Settlement lambdas' {
+      technology 'AWS Lambda / LocalStack'
+      description 'Async settlement workers'
+    }
+
+    betfairStreaming = component 'BetfairStreaming' {
+      technology 'Go'
+      description 'stream | catalogue-sync | dlq-worker'
+    }
+    dataAggregator = component 'DataAggregator' {
+      technology 'Go'
+      description 'Kafka consumer → aggregated market data'
+    }
+    markets = component 'Markets' {
+      technology 'Go'
+      description 'Market catalogue / read API (:8012)'
+    }
+    marketsProxy = component 'MarketsProxy' {
+      technology 'Go'
+      description 'Proxy in front of markets path'
+    }
+    frontMarket = component 'FrontMarket' {
+      technology 'Go'
+      description 'Market read + odds SSE (:8010)'
+    }
+    bookmakerData = component 'BookmakerData' {
+      technology 'Python / FastAPI'
+      description 'Bookmaker odds API + worker (:8003)'
+    }
+    fancyData = component 'FancyData' {
+      technology 'Python / FastAPI'
+      description 'Fancy markets API + worker (:8004)'
+    }
+    manualData = component 'ManualDataManagement' {
+      technology 'Python / FastAPI'
+      description 'Operator odds/suspend overrides (:8008)'
+    }
+    emulators = component 'emulators' {
+      technology 'Go'
+      description 'Betfair mock REST/stream (local/CI)'
+    }
+
+    casino = component 'CasinoManagement' {
+      technology 'Python / FastAPI'
+      description 'Casino management (:8005)'
+    }
+    liveScore = component 'LiveScore' {
+      technology 'Python / FastAPI'
+      description 'Live scores (:8006)'
+    }
+    liveTv = component 'LiveTV' {
+      technology 'Python / FastAPI'
+      description 'Live TV (:8007)'
+    }
+
+    postgres = component 'Postgres' {
+      technology 'PostgreSQL / Aurora'
+      description 'System of record'
+      style { shape storage }
+    }
+    redis = component 'Redis / Valkey' {
+      technology 'Valkey'
+      description 'Odds cache, pub/sub, sessions'
+      style { shape storage }
+    }
+    kafka = component 'Kafka / MSK' {
+      technology 'Kafka'
+      description 'Async integration bus'
+      style { shape storage }
+    }
+
+    // Client → API
+    feB2C -> bettingEngine 'Place bets'
+    feB2C -> frontMarket 'Markets / SSE'
+    feB2C -> userSvc 'Auth / wallet'
+    feB2B -> backOffice 'Operate'
+
+    // Money
+    bettingEngine -> userSvc 'Limits / balances'
+    bettingEngine -> bets 'Persist bets'
+    bettingEngine -> settlement 'Settle'
+    bettingEngine -> kafka 'Events'
+    settlement -> userSvc 'Balance updates'
+    settlement -> postgres 'Writes'
+    bets -> postgres 'Reads/writes'
+    userSvc -> postgres 'Reads/writes'
+    userSvc -> redis 'Cache'
+
+    // Odds / catalogue
+    betfairStreaming -> kafka 'Market updates'
+    betfairStreaming -> redis 'Odds / notices'
+    betfairStreaming -> postgres 'Catalogue'
+    dataAggregator -> kafka 'Consumes'
+    dataAggregator -> postgres 'Aggregates'
+    bookmakerData -> redis 'Publish odds'
+    fancyData -> redis 'Publish odds'
+    manualData -> redis 'Override notices'
+    frontMarket -> redis 'Read odds / SSE'
+    frontMarket -> markets 'Catalogue'
+    marketsProxy -> markets 'Proxy'
+    markets -> postgres 'Catalogue'
+    emulators -> betfairStreaming 'Emulator lane'
+  }
+
+  customer -> falconx.feB2C 'Uses'
+  operator -> falconx.feB2B 'Uses'
+  operator -> falconx.backOffice 'Uses'
+  betfair -> falconx.betfairStreaming 'Stream + catalogue'
+  bookmakerFeeds -> falconx.bookmakerData 'Odds'
+  bookmakerFeeds -> falconx.fancyData 'Fancy'
+}
+
+views {
+  view index {
+    title 'FalconX — System context'
+    include *
+  }
+
+  view of falconx {
+    title 'FalconX — Containers'
+    include *
+  }
+
+  view money of falconx {
+    title 'Money path'
+    include
+      customer,
+      feB2C,
+      userSvc,
+      bettingEngine,
+      bets,
+      settlement,
+      postgres,
+      kafka,
+      redis
+  }
+
+  view odds of falconx {
+    title 'Odds & catalogue'
+    include
+      betfair,
+      emulators,
+      betfairStreaming,
+      dataAggregator,
+      bookmakerData,
+      fancyData,
+      manualData,
+      frontMarket,
+      markets,
+      marketsProxy,
+      redis,
+      kafka,
+      postgres,
+      feB2C,
+      customer
+  }
+}
