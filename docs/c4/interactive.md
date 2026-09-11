@@ -2,20 +2,20 @@
 
 ## On the shared website (team)
 
-After Pages deploy, open:
+**Important:** `/c4/` is only the *explanation* pages. The interactive model is here:
 
-**`/c4-workspace/`** on the hosted site  
+**https://ayushkumar-rfe.github.io/falconx-architecture-docs/c4-workspace/**
 
-(or use the nav link **Open diagrams**).
+Or use the site nav **Open diagrams**.
 
-That is the interactive LikeC4 app: zoom, switch **System context / Containers / Money path / Odds** views, click services.
+There you can zoom, switch **System context / Containers / Money path / Odds** views, and click services.
 
 ## Local (authors)
 
 ```bash
 npm install
 npm run c4:dev          # live editor UI while changing model.c4
-npm run c4:build        # writes docs/public/c4-workspace for the docs site
+npm run build           # embeds workspace into the docs site under /c4-workspace/
 ```
 
 Model source of truth: `c4/model.c4` — change it in a PR; CI rebuilds the hosted workspace.

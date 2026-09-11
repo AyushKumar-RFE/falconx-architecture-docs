@@ -1,0 +1,14 @@
+# Cloudflare Pages — free host for this docs site (private GitHub repos OK).
+# Preferred setup: connect the repo in the Cloudflare dashboard (no GitHub secrets).
+# See docs/guide/how-to-use.md
+#
+# Dashboard build settings:
+#   Build command:      npm run build
+#   Build output dir:   docs/.vitepress/dist
+#   Root directory:     /
+#   Environment vars:   DOCS_BASE=/
+#   Node version:       22
+
+name = "falconx-architecture-docs"
+compatibility_date = "2026-09-11"
+pages_build_output_dir = "docs/.vitepress/dist"

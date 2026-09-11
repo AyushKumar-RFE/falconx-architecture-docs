@@ -1,8 +1,16 @@
 # C4 model
 
-The structural model lives in **`/c4/model.c4`** (LikeC4). This section explains how to read and change it.
+The structural model lives in **`/c4/model.c4`** (LikeC4).
 
-## Views defined
+## Where to look
+
+| Link | What it is |
+|---|---|
+| This section (`/c4/…`) | Written guide (overview / views) |
+| **[Interactive workspace](https://ayushkumar-rfe.github.io/falconx-architecture-docs/c4-workspace/)** | Clickable LikeC4 diagrams (use this) |
+| Nav **Open diagrams** | Same interactive app |
+
+## Views in the model
 
 | View | Purpose |
 |---|---|
@@ -11,12 +19,10 @@ The structural model lives in **`/c4/model.c4`** (LikeC4). This section explains
 | Money path | B2C → BettingEngine → User / Bets / lambdas |
 | Odds & catalogue | Streaming, aggregator, FrontMarket, bookmaker/fancy |
 
-See [Views](./views) and [Interactive workspace](./interactive).
-
 ## Edit loop
 
 ```bash
 npm run c4:dev        # interactive UI with live reload
 npm run c4:validate   # CI gate
-npm run c4:build      # export into docs/public/c4 for the docs site
+npm run build         # export into docs site + VitePress
 ```

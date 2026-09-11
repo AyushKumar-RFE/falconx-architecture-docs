@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 
-// GitHub Pages project site: https://<user>.github.io/falconx-architecture-docs/
-// Local / custom root host: DOCS_BASE=/ npm run docs:dev
+// GitHub Pages: https://<user>.github.io/falconx-architecture-docs/
+// Local root preview: DOCS_BASE=/ npm run docs:dev
 const base = process.env.DOCS_BASE ?? '/falconx-architecture-docs/'
 
 export default withMermaid(
