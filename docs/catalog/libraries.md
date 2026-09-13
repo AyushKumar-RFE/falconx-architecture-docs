@@ -1,11 +1,11 @@
-# Libraries
+# Libraries that we use
 
-| Library | Lang | Role |
-|---|---|---|
-| **TestingCommon** | Python | Shared test helpers |
-| **TransactionManager** | Python | Shared DB/tx + `common_obs` (pool metrics, obs) |
-| **cacheking** | Go/Python boundary | Cache helpers used across services |
-| **gofair** | Go | Betfair protocol / client primitives |
-| **go-datastore** | Go | Shared datastore + `obs` for Go services |
+| Library | Lang | Role | InHose |
+|---|---|---|---|
+| **TestingCommon** | Python | Shared test helpers |    YES
+| **TransactionManager** | Python | Shared DB/tx + `common_obs` (pool metrics, obs) |   YES |
+| **cacheking** | Go/Python boundary | Cache helpers used across services | YES |
+| **gofair** | Go | Betfair protocol / client primitives | NO |
+| **go-datastore** | Go | Shared datastore + `obs` for Go services |    YES |
 
-Libraries generally run **lint + trivy + quality-gate** in CI (no SonarCloud project for libraries). Versioning policy lives with the library repos / Local docs (`library-versioning.md` in Local-dev-setup when present).
+

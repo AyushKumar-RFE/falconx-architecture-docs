@@ -8,9 +8,9 @@ const base = process.env.DOCS_BASE ?? '/falconx-architecture-docs/'
 export default withMermaid(
   defineConfig({
     base,
-    title: 'FalconX Architecture',
+    title: 'Doc-as-a-code, BigBash Architecture',
     description:
-      'Single source of truth for FalconX system architecture — C4, ADRs, catalog, infra',
+      'Architecture documentation for BigBash, That Act as a single source of truth for any info related to the architecture and infrastructure.',
     lang: 'en-US',
     cleanUrls: true,
     lastUpdated: true,
@@ -23,7 +23,7 @@ export default withMermaid(
         { text: 'Home', link: '/' },
         { text: 'C4', link: '/c4/' },
         {
-          text: 'Open diagrams',
+          text: 'Open C4 Diagrams',
           link: '/c4-workspace/',
           target: '_blank',
         },
@@ -36,9 +36,7 @@ export default withMermaid(
           {
             text: 'C4 model',
             items: [
-              { text: 'Overview', link: '/c4/' },
-              { text: 'Views', link: '/c4/views' },
-              { text: 'Interactive workspace', link: '/c4/interactive' },
+              { text: 'Overview', link: '/c4/' }
             ],
           },
         ],
@@ -85,17 +83,17 @@ export default withMermaid(
       socialLinks: [
         {
           icon: 'github',
-          link: 'https://github.com/AyushKumar-RFE/falconx-architecture-docs',
+          link: 'https://github.com/AyushKumar-RFE/bigbash-architecture-docs',
         },
       ],
       search: { provider: 'local' },
       editLink: {
         pattern:
-          'https://github.com/AyushKumar-RFE/falconx-architecture-docs/edit/main/docs/:path',
+          'https://github.com/AyushKumar-RFE/bigbash-architecture-docs/edit/main/docs/:path',
         text: 'Edit this page',
       },
       footer: {
-        message: 'FalconX architecture SSOT — hosted for the team; edit via pull requests.',
+        message: 'BigBash architecture SSOT — hosted for the team; edit via pull requests.',
         copyright: 'Internal — RFE Technology',
       },
     },

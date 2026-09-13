@@ -7,6 +7,7 @@ Canonical clone list: `Local-dev-setup/stack/config/local-repos.txt`.
 |---|---|---|---|---|
 | **User** | Python / FastAPI | 8001 | Identity, wallets, hierarchy | Postgres, Redis |
 | **BettingEngine** | Python / FastAPI + SAM lambdas | 8002 | Bet placement, settlement orchestration, Kafka consumers | Postgres, Redis, Kafka, LocalStack/AWS, User, market data |
+| **Bets** | Go / Fiber | (compose) | Not in use currently | Postgres, BettingEngine contracts |
 | **BookmakerData** | Python / FastAPI | 8003 | Bookmaker odds API (+ worker) | Postgres, Redis; VPN path via Gluetun in VPN stacks |
 | **FancyData** | Python / FastAPI | 8004 | Fancy markets API (+ worker) | Postgres, Redis; VPN path via Gluetun |
 | **CasinoManagement** | Python / FastAPI | 8005 | Casino management API | Postgres, Redis |
@@ -16,7 +17,6 @@ Canonical clone list: `Local-dev-setup/stack/config/local-repos.txt`.
 | **FrontMarket** | Go | 8010 | Market read path + odds SSE hub | Redis, Markets, upstream APIs |
 | **Markets** | Go | 8012 | Market catalogue / market read service | Postgres, Redis |
 | **MarketsProxy** | Go | (compose) | Proxy in front of markets path | Markets |
-| **Bets** | Go / Fiber | (compose) | Bets read/write API; schema owned by BettingEngine | Postgres, BettingEngine contracts |
 | **BackOffice** | Go | (compose) | Back-office APIs | Postgres, internal services |
 | **BetfairStreaming** | Go | via stack / Gluetun on VPN | Live Betfair stream, catalogue-sync, dlq-worker | Kafka, Redis, Postgres, Betfair or emulator |
 | **DataAggregator** | Go | (worker) | Kafka consumer → aggregated store / partitions | Kafka, Postgres |
@@ -24,44 +24,5 @@ Canonical clone list: `Local-dev-setup/stack/config/local-repos.txt`.
 | **Frontend-B2B** | Next.js | 3000 | Operator / B2B UI | APIs on localhost |
 | **Frontend-B2C** | Next.js | 3001 | Customer UI | APIs on localhost |
 
-Health convention fleet-wide: **`/livez`** (liveness) + **`/readyz`** (readiness). Legacy aliases may remain during deprecation.
+Health convention fleet-wide: **`/livez`** (liveness) + **`/readyz`** (readiness). 
 
-## Domain map (quick)
-
-```mermaid
-flowchart TB
-  subgraph clients [Clients]
-    B2B[Frontend-B2B]
-    B2C[Frontend-B2C]
-    BO[BackOffice]
-  end
-  subgraph money [Money path]
-    BE[BettingEngine]
-    Bets[Bets]
-    User[User]
-    Lambdas[Settlement lambdas]
-  end
-  subgraph odds [Odds / catalogue]
-    BFS[BetfairStreaming]
-    DA[DataAggregator]
-    FM[FrontMarket]
-    Mkt[Markets]
-    BM[BookmakerData]
-    FY[FancyData]
-    MDM[ManualDataManagement]
-  end
-  B2C --> BE
-  B2C --> FM
-  B2B --> BO
-  BE --> User
-  BE --> Bets
-  BE --> Lambdas
-  BFS --> DA
-  BFS --> FM
-  DA --> Mkt
-  BM --> FM
-  FY --> FM
-  MDM --> FM
-```
-
-Update this table when `local-repos.txt` or compose ports change.
