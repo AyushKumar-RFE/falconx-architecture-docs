@@ -10,20 +10,17 @@ export default withMermaid(
     base,
     title: 'FalconX Architecture',
     description:
-      'Single source of truth for FalconX system architecture — C4, ADRs, catalog, infra, flows',
+      'Single source of truth for FalconX system architecture — C4, ADRs, catalog, infra',
     lang: 'en-US',
     cleanUrls: true,
     lastUpdated: true,
     ignoreDeadLinks: [
-      // Local-only examples in how-to-use
-      /^http:\/\/localhost/,
       // Built LikeC4 app (generated into public/ at build time)
       /\/c4-workspace/,
     ],
     themeConfig: {
       nav: [
         { text: 'Home', link: '/' },
-        { text: 'How to use', link: '/guide/how-to-use' },
         { text: 'C4', link: '/c4/' },
         {
           text: 'Open diagrams',
@@ -31,23 +28,10 @@ export default withMermaid(
           target: '_blank',
         },
         { text: 'Catalog', link: '/catalog/services' },
-        { text: 'Flows', link: '/flows/' },
         { text: 'Infra', link: '/infra/' },
         { text: 'ADRs', link: '/adr/' },
       ],
       sidebar: {
-        '/guide/': [
-          {
-            text: 'Guide',
-            items: [
-              { text: 'How to use this site', link: '/guide/how-to-use' },
-              { text: 'How we decide', link: '/guide/how-we-decide' },
-              { text: 'Reading this site', link: '/guide/reading-this-site' },
-              { text: 'Updating the SSOT', link: '/guide/updating-ssot' },
-              { text: 'Tooling', link: '/guide/tooling' },
-            ],
-          },
-        ],
         '/c4/': [
           {
             text: 'C4 model',
@@ -65,17 +49,6 @@ export default withMermaid(
               { text: 'Services', link: '/catalog/services' },
               { text: 'Libraries', link: '/catalog/libraries' },
               { text: 'Legacy / excluded', link: '/catalog/legacy' },
-            ],
-          },
-        ],
-        '/flows/': [
-          {
-            text: 'Critical flows',
-            items: [
-              { text: 'Overview', link: '/flows/' },
-              { text: 'Place bet → settle', link: '/flows/place-and-settle' },
-              { text: 'Odds ingest', link: '/flows/odds-ingest' },
-              { text: 'Catalogue sync', link: '/flows/catalogue-sync' },
             ],
           },
         ],

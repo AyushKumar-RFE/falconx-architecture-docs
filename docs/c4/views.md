@@ -10,10 +10,10 @@ All major deployables: frontends, money-path services, odds/catalogue services, 
 
 ## Money path
 
-Focused view for place-bet and settlement. Pair with [Place bet → settle](/flows/place-and-settle).
+Focused view for place-bet and settlement through B2C → BettingEngine → User / Bets / lambdas.
 
 ## Odds & catalogue
 
-BetfairStreaming, DataAggregator, FrontMarket, Bookmaker/Fancy/MDM, stores. Pair with [Odds ingest](/flows/odds-ingest) and [Catalogue sync](/flows/catalogue-sync).
+BetfairStreaming, DataAggregator, FrontMarket, Bookmaker/Fancy/MDM, and stores.
 
 Open the [interactive workspace](./interactive) to click through relationships.
