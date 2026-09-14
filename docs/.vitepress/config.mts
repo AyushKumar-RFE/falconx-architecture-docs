@@ -28,6 +28,7 @@ export default withMermaid(
           target: '_blank',
         },
         { text: 'Catalog', link: '/catalog/services' },
+        { text: 'Feature flags', link: '/feature-flags/' },
         { text: 'Infra', link: '/infra/' },
         { text: 'ADRs', link: '/adr/' },
       ],
@@ -48,6 +49,12 @@ export default withMermaid(
               { text: 'Libraries', link: '/catalog/libraries' },
               { text: 'Legacy / excluded', link: '/catalog/legacy' },
             ],
+          },
+        ],
+        '/feature-flags/': [
+          {
+            text: 'Feature flags',
+            items: [{ text: 'Overview', link: '/feature-flags/' }],
           },
         ],
         '/infra/': [
