@@ -8,7 +8,7 @@ const base = process.env.DOCS_BASE ?? '/falconx-architecture-docs/'
 export default withMermaid(
   defineConfig({
     base,
-    title: 'Doc-as-a-code, BigBash Architecture',
+    title: 'BigBash Architecture',
     description:
       'Architecture documentation for BigBash, That Act as a single source of truth for any info related to the architecture and infrastructure.',
     lang: 'en-US',
