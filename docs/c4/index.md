@@ -27,6 +27,7 @@ npm run build         # export into docs site + VitePress
 |---|---|
 | Infra — System context | Users, GitHub, Groundcover, Sentry around FalconX |
 | Infra — Request path | WAF → CloudFront → Traefik HTTPRoute → pod |
+| Infra — Kubernetes compute | Karpenter NodePools, Traefik, Argo CD, settlement Lambda |
 | Infra — Data plane | Aurora + DA, Valkey, MSK, Debezium outbox, Secrets Manager |
 | Infra — Ship path | GitHub Actions → ECR → Argo CD → pods |
 | Infra — Observability | Sensor → Groundcover; SDK → Sentry |

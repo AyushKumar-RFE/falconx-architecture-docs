@@ -86,6 +86,8 @@ flowchart LR
 
 DB/Redis pools are a **fleet budget** (`rfetech-gitops/.github/connection-budget/`). Scale on `db_pool_*` / `redis_pool_*`, not “CPU looks fine”.
 
-EventBridge `bus_{env}` is for market-closure style events.
+EventBridge `bus_{env}` is for market-closure style events. Vendors (Betfair, datafeed365, …): [Dependencies](/infra/dependencies). Secret names: [IAM & secrets](/infra/iam-and-secrets).
+
+Kafka lag / pool exhaustion: [Troubleshooting](/infra/troubleshooting). Topic or cluster size: [Changes](/infra/changes).
 
 [Visual map](/infra/diagrams)

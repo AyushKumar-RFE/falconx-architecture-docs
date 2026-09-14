@@ -116,6 +116,10 @@ model {
       technology 'eBPF DaemonSet + OTLP'
       description 'Installed from GitOps. AWS IAM role is Terraform groundcover/.'
     }
+    karpenter = platform 'Karpenter' {
+      technology 'NodePools · EKS Auto Mode'
+      description 'Launches EC2 nodes when pods cannot schedule. NodePools in rfetech-infra k8s/.'
+    }
   }
 
   // Public request path
@@ -148,6 +152,8 @@ model {
   github -> falconx.argoCD 'Commit image.tag in GitOps'
   falconx.argoCD -> falconx.feB2C 'Sync'
   falconx.argoCD -> falconx.bettingEngine 'Sync'
+  falconx.karpenter -> falconx.traefik 'Nodes for ingress pods'
+  falconx.karpenter -> falconx.bettingEngine 'Nodes for app pods'
 
   // Telemetry
   falconx.gcSensor -> groundcover 'OTLP / eBPF'
@@ -324,6 +330,18 @@ views {
       falconx.feB2C,
       falconx.bettingEngine,
       falconx.feB2B
+  }
+
+  view infraKubernetes of falconx {
+    title 'Infra — Kubernetes compute'
+    description 'EKS Auto Mode + Karpenter NodePools. Argo CD syncs apps. Traefik is in-cluster ingress. Settlement Lambdas are SAM, not Argo.'
+    include
+      karpenter,
+      traefik,
+      argoCD,
+      bettingEngine,
+      settlement,
+      ecr
   }
 
   view infraObservability {

@@ -4,9 +4,59 @@ Skim this page first. Each diagram is one idea. Captions are short on purpose.
 
 **Want the repo-by-repo detail?** [Four repos](/infra/repos/) · [Creating things](/infra/repos/creating)
 
-The three flows to learn first: **[request](#2-a-user-request)** · **[ship](#3-a-code-change)** · **[data / CDC](#7-data-plane)**. Each diagram below has hop-by-hop notes.
+The three flows to learn first: **[request](#2-a-user-request)** · **[ship](#3-a-code-change)** · **[data / CDC](#7-data-plane)**. Plus **[infra change](#13-an-infrastructure-change)** and the **[cloud tree](#0-cloud-layout)**. Each diagram has a short “when to look” note.
+
+## 0. Cloud layout
+
+**What:** One tree of the AWS account as we actually run it. **When to look:** first hour on the team. **Notice:** perf is a namespace under develop’s cluster, not a third account. WAF/CloudFront certs are us-east-1; the VPC is eu-west-2.
+
+```mermaid
+flowchart TB
+  subgraph cloud [AWS]
+    subgraph net [Network]
+      VPC[VPC + subnets]
+      SG[security groups]
+      NAT[NAT + SSM bastion]
+    end
+    subgraph k8s [Kubernetes]
+      EKS[EKS Auto Mode]
+      KP[Karpenter NodePools]
+      NS[app namespaces]
+      ING[Traefik + HTTPRoute]
+      EKS --> KP --> NS
+      ING --> NS
+    end
+    subgraph data [Data]
+      AU[(Aurora + aurora-da)]
+      VK[(Valkey)]
+      MSK[MSK + Debezium]
+    end
+    subgraph obs [Observability]
+      GC[Groundcover]
+      SE[Sentry]
+      GR[Grafana / Prometheus]
+    end
+    subgraph ext [Edge + vendors]
+      CF[CloudFront + WAF]
+      BF[Betfair / feeds]
+    end
+  end
+  CF --> ING
+  NS --> AU
+  NS --> VK
+  NS --> MSK
+  NS --> GC
+  NS --> SE
+  NS -.-> BF
+```
+
+Interactive: [C4 workspace](/c4/) · narrative: [Overview](/infra/)
+
+---
 
 ## 1. The whole system
+
+**What:** Four Git repos around one region. **When to look:** after the cloud tree, before diving into a single hop.
 
 Four repos. One AWS region (`eu-west-2`). Traffic in from the left, code in from the top.
 
@@ -341,6 +391,8 @@ flowchart TB
 
 ## 9. Secrets
 
+**What:** How pods get DB/Kafka/Valkey settings. **When to look:** CrashLoop on mount, or a new env key. Detail: [IAM & secrets](/infra/iam-and-secrets).
+
 Credentials never live in Helm values. Config Manager builds one Secrets Manager document. CSI mounts it into the pod.
 
 ```mermaid
@@ -424,6 +476,8 @@ flowchart LR
 
 ## 12. Where to edit
 
+**What:** Decision tree for which GitHub repo owns the change. **When to look:** before you open a PR. Full table: [Where to change](/infra/changes).
+
 ```mermaid
 flowchart TB
   Q{What are you changing?}
@@ -434,3 +488,32 @@ flowchart TB
   Q -->|build / scan / ship| GHA[rfetech-github-actions]
   Q -->|the story / a decision| DOC[this repo + ADR]
 ```
+
+---
+
+## 13. An infrastructure change
+
+**What:** How Terraform or GitOps reaches AWS/the cluster. **When to look:** you are not shipping an app image. **Notice:** prod Terraform is the **manual** `github-aws-int.yaml` workflow (`workflow_dispatch`) with **infra-team** approval. Image-only deploys skip this — they are flow 3.
+
+```mermaid
+sequenceDiagram
+  actor Eng as Engineer
+  participant Repo as tf-modules / infra / gitops
+  participant CI as validate / plan
+  participant Gate as infra-team
+  participant Cloud as AWS or Argo CD
+
+  Eng->>Repo: pull request
+  Repo->>CI: fmt, validate, plan or helm-lint
+  CI->>Gate: prod apply / prod GitOps
+  Gate->>Cloud: apply or Argo sync
+```
+
+```text
+Infra code → PR → review → CI (plan / helm-validate)
+  → develop: apply in the leaf folder, or merge GitOps for Argo
+  → prod: github-aws-int.yaml (workflow_dispatch: plan → approval → apply) or GitOps + infra-team
+  → Cloud / cluster
+```
+
+Hop-by-hop: [Changes](/infra/changes). C4: **Infra — Kubernetes compute** (nodes) · **Infra — Ship path** (apps).

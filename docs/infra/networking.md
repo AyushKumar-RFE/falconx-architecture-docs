@@ -94,4 +94,6 @@ flowchart LR
 
 `make start-local-vpn` puts those services on `network_mode: service:gluetun`. Fullstack B2B/B2C uses `network_mode: host` so SSR and the browser share `localhost`. Deep rules: `Local-dev-setup`.
 
+Change CloudFront/WAF/VPC: [Changes](/infra/changes). 5xx at the edge: [Troubleshooting](/infra/troubleshooting).
+
 [Visual map](/infra/diagrams)

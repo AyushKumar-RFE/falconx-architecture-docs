@@ -74,4 +74,4 @@ If you edit the wrong layer, the change either will not apply, or will apply eve
 - If this page and Terraform disagree, Terraform wins — then update this page.
 - Promoting architecture: ADR here → implement in the repo that owns the config → merge in dependency order (modules → infra → gitops / actions).
 
-Read next: [Creating things in the four repos](/infra/repos/creating) (new service, module, stack, add-on, CI), then pick a repo page.
+Full “if I need to change X” table: [Where to change](/infra/changes). Cookbook: [Creating things](/infra/repos/creating).
