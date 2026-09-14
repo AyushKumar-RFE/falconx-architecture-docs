@@ -62,10 +62,12 @@ export default withMermaid(
             text: 'Infrastructure',
             items: [
               { text: 'Overview', link: '/infra/' },
+              { text: 'Visual map', link: '/infra/diagrams' },
               { text: 'Environments', link: '/infra/environments' },
+              { text: 'Provisioning', link: '/infra/provisioning' },
+              { text: 'Networking', link: '/infra/networking' },
               { text: 'Data stores', link: '/infra/data-stores' },
               { text: 'Compute & deploy', link: '/infra/compute-and-deploy' },
-              { text: 'Networking', link: '/infra/networking' },
               { text: 'Observability', link: '/infra/observability' },
               { text: 'Local & isolated stack', link: '/infra/local-stack' },
             ],

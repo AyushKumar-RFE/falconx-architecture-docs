@@ -1,23 +1,48 @@
 # Local & isolated stack
 
-Orchestration repo: **Local-dev-setup** (this architecture docs repo does not run the stack).
+**Local-dev-setup** runs compose. This docs repo does not. Same *services* as cloud, not the same *AWS*.
 
-## Everyday commands
-
-```bash
-make setup-local          # clone + build falconx-local-dev
-make start-local          # APIs/workers
-make start-local-emulator # + Betfair emulator
-make redeploy [SERVICE=]  # rebuild image + recreate
-make stop                 # teardown any variant
+```mermaid
+flowchart LR
+  subgraph local [Laptop]
+    IMG[falconx-local-dev]
+    PG[(Postgres)]
+    RD[(Redis)]
+    KF[Kafka]
+    LS[LocalStack]
+    IMG --> PG
+    IMG --> RD
+    IMG --> KF
+    IMG --> LS
+  end
+  subgraph cloud [Develop / prod]
+    EKS[EKS + Argo]
+    AU[(Aurora)]
+    VK[(Valkey)]
+    MSK[MSK]
+  end
+  local -.->|not this| cloud
 ```
 
-## Ordering (no nop barriers)
+```mermaid
+flowchart LR
+  S[make setup-local] --> ST[make start-local]
+  ST --> E[make start-local-emulator]
+  ST --> R[make redeploy SERVICE=]
+  ST --> LOG[make logs-local]
+  ST --> X[make stop]
+```
 
-Real containers express `depends_on`. `debezium-migration` waits on catalogue-sync and acts as the last setup edge many APIs gate on.
+No Argo, CloudFront, or Groundcover sensor on a laptop. Flags: `SENTRY=1` `OTEL=1` `REPLICA=1`, plus VPN / fullstack. VPN path: [Networking](/infra/networking).
 
-## Isolated
+```mermaid
+flowchart LR
+  CS[catalogue-sync] --> DM[debezium-migration]
+  DM --> APIs[APIs start]
+```
 
-CI uses pre-built images (`make start-isolated*`) — same topology ideas, different image source.
+`depends_on` is real — no sleep barriers. Isolated CI (`make start-isolated*`) is the same topology with pre-built images.
 
-Keep this page short; deep compose rules live in Local-dev-setup `CLAUDE.md` / falconx-local-dev skill.
+Deep compose rules live in Local-dev-setup, not here.
+
+[Visual map](/infra/diagrams) · [Environments](/infra/environments)
