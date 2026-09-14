@@ -36,6 +36,8 @@ sequenceDiagram
 
 WAF: develop/prod **COUNT** (observe), perf **BLOCK**. A second Traefik (`traefik-external`) is for tools (Grafana), not the public product path.
 
+**Walk the request:** DNS hits CloudFront, not a pod. WAF runs in us-east-1. Images (`/B2C/images/*`, `/B2B/images/*`) stop at S3. HTML/API go to an **internal** NLB (`traefik-cloudfront`). An HTTPRoute is host + path in that service’s `custom-values.yaml` — ExternalDNS writes Route53. The pod then uses Aurora/Valkey on private subnets. Hop-by-hop: [Visual map § request](/infra/diagrams#2-a-user-request).
+
 ## Hosts
 
 ```mermaid

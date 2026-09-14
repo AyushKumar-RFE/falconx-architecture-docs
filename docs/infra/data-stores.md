@@ -71,6 +71,8 @@ sequenceDiagram
 
 Connectors: **userservice**, **bettingengine**, **casinomanagement**. Name: `{env}-{service}-outbox-connector`.
 
+**Walk the CDC path:** The API writes business data and `outbox_events` in one Postgres transaction. Debezium on MSK Connect tails that table and publishes to Terraform-managed topics (`develop_*` / `perf_*` on shared MSK, `prod_*` on prod). DataAggregator consumes and writes **aurora-da**. BettingEngine also produces some topics itself. Perf shares develop’s Aurora/MSK but has its own connectors and Valkey. Hop-by-hop: [Visual map § data plane](/infra/diagrams#7-data-plane).
+
 ## Config and pools
 
 ```mermaid

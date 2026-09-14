@@ -73,6 +73,8 @@ sequenceDiagram
 
 Never tag `latest`. Rollback = revert the GitOps commit (`rollback.yml`), not `kubectl rollout undo`.
 
+**Walk the ship path:** Service `ci-cd-pipeline.yml` only *calls* `rfetech-github-actions`. After the quality gate, CI pushes `{service}-{env}:V{run}-{semver}` and commits `deployment.image.tag` under `fantasy7-<env>`. Argo’s ApplicationSet already renders chart `1.0.0` into the env namespace. Lambdas are SAM, not this path. Hop-by-hop: [Visual map § code change](/infra/diagrams#3-a-code-change).
+
 Coordinated releases: “The Big Bash” / “The Patch” / `ship-release.yml`.
 
 ## Secrets

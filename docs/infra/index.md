@@ -41,26 +41,34 @@ flowchart LR
 
 Laptop compose is **Local-dev-setup**, not cloud infra. [Local stack](/infra/local-stack).
 
-## Two flows
+## Three flows
 
-A **user** hits CloudFront. A **commit** hits CI, then GitOps, then Argo CD. Nobody `kubectl apply`s product apps.
+Learn these three. Full hop-by-hop notes: [Visual map](/infra/diagrams).
 
 ```mermaid
 flowchart TB
-  subgraph request [User request]
+  subgraph request [1 User request]
     U[Browser] --> CF[CloudFront + WAF]
     CF --> T[Traefik NLB]
     T --> P[pod]
   end
-  subgraph change [Code change]
+  subgraph change [2 Code change]
     R[service repo] --> CI[reusable workflows]
     CI --> ECR[ECR]
     CI --> H[Helm tag in gitops]
     H --> AR[Argo CD] --> P2[pod]
   end
+  subgraph data [3 Outbox CDC]
+    API[API + outbox row] --> PG[(Aurora)]
+    PG --> D[Debezium]
+    D --> K[Kafka]
+    K --> DA[consumers]
+  end
 ```
 
-Full sequences: [Visual map](/infra/diagrams) · [Networking](/infra/networking) · [Compute & deploy](/infra/compute-and-deploy)
+1. **Request** — DNS → WAF → CloudFront → S3 *or* internal Traefik → HTTPRoute → pod → Aurora/Valkey. [Networking](/infra/networking)
+2. **Ship** — thin CI → Sonar/Trivy → ECR `V{run}-{semver}` → GitOps tag bump → Argo sync. No `kubectl apply`. [Compute & deploy](/infra/compute-and-deploy)
+3. **Data** — same-transaction outbox → Debezium → MSK → DataAggregator / other consumers. [Data stores](/infra/data-stores)
 
 ## Pages
 
