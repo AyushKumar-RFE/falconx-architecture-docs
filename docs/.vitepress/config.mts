@@ -37,7 +37,7 @@ export default withMermaid(
           {
             text: 'C4 model',
             items: [
-              { text: 'Overview', link: '/c4/' }
+              { text: 'Overview', link: '/c4/' },
             ],
           },
         ],
@@ -70,6 +70,17 @@ export default withMermaid(
               { text: 'Compute & deploy', link: '/infra/compute-and-deploy' },
               { text: 'Observability', link: '/infra/observability' },
               { text: 'Local & isolated stack', link: '/infra/local-stack' },
+            ],
+          },
+          {
+            text: 'Repos',
+            items: [
+              { text: 'Four repos', link: '/infra/repos/' },
+              { text: 'Creating things', link: '/infra/repos/creating' },
+              { text: 'tf-modules', link: '/infra/repos/tf-modules' },
+              { text: 'rfetech-infra', link: '/infra/repos/rfetech-infra' },
+              { text: 'rfetech-gitops', link: '/infra/repos/rfetech-gitops' },
+              { text: 'rfetech-github-actions', link: '/infra/repos/rfetech-github-actions' },
             ],
           },
         ],

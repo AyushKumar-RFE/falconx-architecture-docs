@@ -1,22 +1,41 @@
 # C4 model
 
-### C4 stands for Context, Containers, Components, and Code.
+C4 is **Context, Containers, Components, and Code**. We maintain a [LikeC4](https://likec4.dev) model under `/c4` (ADR 0003). Mermaid stays on the [infra](/infra/) pages for sequences; LikeC4 is the navigable topology.
 
-## **[Link](https://ayushkumar-rfe.github.io/falconx-architecture-docs/c4-workspace/)** | LikeC4 diagrams (use this) |
-
-## Views in the model
-
-| View | Purpose |
-|---|---|
-| System context | The highest level of view. software system as a single box in the center, surrounded by the people who use it and the other external systems it talks to.|
-| Containers | A zoom-in on your software system. separately deployable applications that make up the system such as server-side API, or a database. |
-| Component | A zoom-in on one specific container. B2C → BettingEngine → User / Bets / lambdas, For each componete you can see Inbound and OutBound services (i.e Relationships), Structure, Properties, Deployment Info|
-| Code | We are not implementing it since maintaing it will be very hard. |
-
-## For Editing this digram, Clone repo and run this.
+## **[Open interactive diagrams](/c4-workspace/)** (use this)
 
 ```bash
 npm run c4:dev        # interactive UI with live reload
 npm run c4:validate   # CI gate
 npm run build         # export into docs site + VitePress
 ```
+
+## Views
+
+### Product (apps)
+
+| View | Question |
+|---|---|
+| System context | Who uses FalconX? What is outside (Betfair, bookmaker feeds)? |
+| Containers (apps) | Which EKS services, Lambda, Aurora, Valkey, MSK exist and how they talk |
+| Money path | Place-bet → User / Bets / settlement Lambda |
+| Odds & catalogue | Stream vs poll into FrontMarket / Markets |
+
+### Infrastructure (platform)
+
+| View | Question |
+|---|---|
+| Infra — System context | Users, GitHub, Groundcover, Sentry around FalconX |
+| Infra — Request path | WAF → CloudFront → Traefik HTTPRoute → pod |
+| Infra — Data plane | Aurora + DA, Valkey, MSK, Debezium outbox, Secrets Manager |
+| Infra — Ship path | GitHub Actions → ECR → Argo CD → pods |
+| Infra — Observability | Sensor → Groundcover; SDK → Sentry |
+| Infra — AWS accounts | Develop+perf account vs prod account |
+| Infra — Develop + perf | Shared VPC/EKS, two namespaces |
+| Infra — Production | Dedicated VPC, cluster, data plane |
+
+Source files: `c4/model.c4` (product) and `c4/infra.c4` (platform, deployment).
+
+We do **not** model the Code level — it would rot immediately.
+
+Written walkthrough of the same platform: [Infra](/infra/) · [Visual map](/infra/diagrams) · [Repos](/infra/repos/).
