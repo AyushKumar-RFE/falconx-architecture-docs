@@ -1,0 +1,361 @@
+// Infrastructure C4 (LikeC4)
+// Extends c4/model.c4: edge, data plane, GitOps, AWS deployment
+// Run: npm run c4:dev | npm run c4:validate
+
+specification {
+  element edge {
+    style {
+      shape rectangle
+      color amber
+    }
+  }
+  element platform {
+    style {
+      shape rectangle
+      color muted
+    }
+  }
+  deploymentNode awsAccount {
+    notation 'AWS account'
+    style {
+      icon aws:cloud-formation
+      color muted
+    }
+  }
+  deploymentNode vpc {
+    notation 'VPC'
+    style {
+      icon aws:cloud-formation
+      color indigo
+    }
+  }
+  deploymentNode eksCluster {
+    notation 'EKS cluster'
+    style {
+      icon aws:elastic-kubernetes-service
+      color primary
+    }
+  }
+  deploymentNode namespace {
+    notation 'Kubernetes namespace'
+    style {
+      icon tech:kubernetes
+    }
+  }
+  deploymentNode cdn {
+    notation 'CDN / WAF'
+    style {
+      color amber
+    }
+  }
+  deploymentNode dataPlane {
+    notation 'Managed data plane'
+    style {
+      icon aws:aurora
+      color indigo
+    }
+  }
+}
+
+model {
+  github = system 'GitHub' {
+    description 'Service repos, rfetech-github-actions, rfetech-gitops, rfetech-infra, tf-modules'
+    icon tech:github
+  }
+  groundcover = system 'Groundcover' {
+    description 'APM / traces / logs UI (inCloud). Sensors run in our cluster.'
+  }
+  sentry = system 'Sentry' {
+    description 'Product error tracking (local stand-in: GlitchTip)'
+  }
+
+  extend falconx {
+    waf = edge 'AWS WAF' {
+      technology 'WAFv2 · CloudFront scope · us-east-1'
+      description 'Rate limits, managed rules, COUNT or BLOCK. Associated with CloudFront.'
+    }
+    cloudFront = edge 'CloudFront' {
+      technology 'Amazon CloudFront'
+      description 'Public TLS. Dual origin: S3 images + VPC origin to internal Traefik NLB.'
+    }
+    traefik = edge 'Traefik CloudFront' {
+      technology 'Traefik · internal NLB · Gateway API'
+      description 'HTTPRoutes (host + path). Not on the public internet.'
+      icon aws:elastic-kubernetes-service
+    }
+    argoCD = platform 'Argo CD' {
+      technology 'Argo CD on EKS'
+      description 'Reconciles falcon-apps-of-apps + ApplicationSets from rfetech-gitops'
+    }
+    ecr = store 'Amazon ECR' {
+      technology 'ECR eu-west-2'
+      description '{service}-{develop|perf|prod} immutable tags V{run}-{semver}'
+      icon aws:cloud-formation
+    }
+    s3static = store 'S3 static assets' {
+      technology 'S3 + OAC'
+      description '/B2C/images/* and /B2B/images/* via CloudFront'
+      icon aws:cloud-formation
+    }
+    secretsMgr = store 'Secrets Manager' {
+      technology 'config_{env}_{region}'
+      description 'CONFIG_MANAGER blob. Pods mount via CSI SecretProviderClass.'
+      icon aws:cloud-formation
+    }
+    auroraDa = store 'Aurora DA' {
+      technology 'Amazon Aurora PostgreSQL'
+      description 'Data Aggregator cluster (aurora-da-dev / aurora-da-prod)'
+      icon aws:aurora
+    }
+    debezium = platform 'Debezium (MSK Connect)' {
+      technology 'MSK Connect · outbox CDC'
+      description 'userservice, bettingengine, casinomanagement → Kafka'
+      icon aws:managed-streaming-for-apache-kafka
+    }
+    gcSensor = platform 'Groundcover sensor' {
+      technology 'eBPF DaemonSet + OTLP'
+      description 'Installed from GitOps. AWS IAM role is Terraform groundcover/.'
+    }
+  }
+
+  // Public request path
+  customer -> falconx.waf 'HTTPS'
+  operator -> falconx.waf 'HTTPS'
+  falconx.waf -> falconx.cloudFront 'Allow / count / block'
+  falconx.cloudFront -> falconx.s3static 'Static images'
+  falconx.cloudFront -> falconx.traefik 'VPC origin (internal NLB)'
+  falconx.traefik -> falconx.feB2C 'HTTPRoute B2C host'
+  falconx.traefik -> falconx.feB2B 'HTTPRoute admin / B2B host'
+  falconx.traefik -> falconx.userSvc 'HTTPRoute gateway'
+  falconx.traefik -> falconx.bettingEngine 'HTTPRoute gateway'
+  falconx.traefik -> falconx.frontMarket 'HTTPRoute gateway'
+  falconx.traefik -> falconx.backOffice 'HTTPRoute gateway'
+
+  // CDC + DA
+  falconx.postgres -> falconx.debezium 'Logical replication (outbox_events)'
+  falconx.debezium -> falconx.kafka 'CDC topics'
+  falconx.dataAggregator -> falconx.auroraDa 'Aggregates / partitions'
+
+  // Config
+  falconx.postgres -> falconx.secretsMgr 'Endpoints aggregated by CONFIG_MANAGER'
+  falconx.kafka -> falconx.secretsMgr 'Bootstrap / SCRAM'
+  falconx.redis -> falconx.secretsMgr 'Valkey endpoint'
+  falconx.userSvc -> falconx.secretsMgr 'CSI mount'
+  falconx.bettingEngine -> falconx.secretsMgr 'CSI mount'
+
+  // Delivery
+  github -> falconx.ecr 'CI push image'
+  github -> falconx.argoCD 'Commit image.tag in GitOps'
+  falconx.argoCD -> falconx.feB2C 'Sync'
+  falconx.argoCD -> falconx.bettingEngine 'Sync'
+
+  // Telemetry
+  falconx.gcSensor -> groundcover 'OTLP / eBPF'
+  falconx.bettingEngine -> falconx.gcSensor 'Runtime'
+  falconx.bettingEngine -> sentry 'Errors / traces'
+  falconx -> groundcover 'Metrics, traces, logs'
+  falconx -> sentry 'Errors'
+}
+
+deployment {
+  accDev = awsAccount 'Develop + Perf' {
+    technology 'Account 460195068944 · eu-west-2'
+    description 'Shared VPC and EKS. Perf is a namespace + overlay stacks, not a third account.'
+
+    cfDev = cdn 'CloudFront *.bigbash.life' {
+      technology 'WAF COUNT (develop) / BLOCK (perf)'
+      cf1 = instanceOf falconx.cloudFront
+      waf1 = instanceOf falconx.waf
+    }
+
+    vpcDev = vpc 'rfe-dev-vpc' {
+      technology '10.10.0.0/16'
+
+      eksDev = eksCluster 'rfe-dev-cluster' {
+        technology 'EKS 1.35 Auto Mode'
+
+        platDev = namespace 'platform (Traefik, Argo, Groundcover)' {
+          t1 = instanceOf falconx.traefik
+          a1 = instanceOf falconx.argoCD
+          g1 = instanceOf falconx.gcSensor
+        }
+
+        nsDevelopment = namespace 'development' {
+          technology 'fantasy7-develop Helm'
+          dB2c = instanceOf falconx.feB2C
+          dB2b = instanceOf falconx.feB2B
+          dUser = instanceOf falconx.userSvc
+          dBe = instanceOf falconx.bettingEngine
+          dFm = instanceOf falconx.frontMarket
+          dDa = instanceOf falconx.dataAggregator
+        }
+
+        nsPerformance = namespace 'performance' {
+          technology 'fantasy7-perf Helm · same cluster'
+          pB2c = instanceOf falconx.feB2C
+          pBe = instanceOf falconx.bettingEngine
+        }
+      }
+
+      dataDev = dataPlane 'Shared Aurora + MSK · per-env Valkey' {
+        technology 'aurora-dev, rfe-kafka, dev + perf Valkey, Debezium'
+        pg1 = instanceOf falconx.postgres
+        da1 = instanceOf falconx.auroraDa
+        rd1 = instanceOf falconx.redis
+        kf1 = instanceOf falconx.kafka
+        dbz1 = instanceOf falconx.debezium
+        sm1 = instanceOf falconx.secretsMgr
+      }
+    }
+
+    ecrDev = dataPlane 'ECR develop / perf' {
+      e1 = instanceOf falconx.ecr
+    }
+  }
+
+  accProd = awsAccount 'Production' {
+    technology 'Account 389068786427 · eu-west-2'
+    description 'Dedicated VPC, cluster, Aurora, MSK, Valkey. Nothing shared with develop.'
+
+    cfProd = cdn 'CloudFront bigbash.site' {
+      technology 'b2c / admin / gateway-prod'
+      cf2 = instanceOf falconx.cloudFront
+      waf2 = instanceOf falconx.waf
+    }
+
+    vpcProd = vpc 'rfe-prod-vpc' {
+      technology '10.30.0.0/16'
+
+      eksProd = eksCluster 'rfe-prod-cluster' {
+        technology 'EKS 1.35 Auto Mode'
+
+        platProd = namespace 'platform' {
+          t2 = instanceOf falconx.traefik
+          a2 = instanceOf falconx.argoCD
+          g2 = instanceOf falconx.gcSensor
+        }
+
+        nsProduction = namespace 'production' {
+          technology 'fantasy7-prod Helm'
+          prB2c = instanceOf falconx.feB2C
+          prB2b = instanceOf falconx.feB2B
+          prUser = instanceOf falconx.userSvc
+          prBe = instanceOf falconx.bettingEngine
+          prFm = instanceOf falconx.frontMarket
+          prDa = instanceOf falconx.dataAggregator
+          prCasino = instanceOf falconx.casino
+          prMarkets = instanceOf falconx.markets
+        }
+      }
+
+      dataProd = dataPlane 'Prod Aurora + MSK + Valkey' {
+        technology 'aurora-prod + RDS Proxy, aurora-da-prod, kafka-cluster-prod, prod-elasticache'
+        pg2 = instanceOf falconx.postgres
+        da2 = instanceOf falconx.auroraDa
+        rd2 = instanceOf falconx.redis
+        kf2 = instanceOf falconx.kafka
+        dbz2 = instanceOf falconx.debezium
+        sm2 = instanceOf falconx.secretsMgr
+      }
+    }
+
+    ecrProd = dataPlane 'ECR prod' {
+      e2 = instanceOf falconx.ecr
+    }
+  }
+}
+
+views {
+  view infraContext {
+    title 'Infra — System context'
+    description 'Who talks to FalconX on the platform: users, GitHub delivery, Groundcover, Sentry, Betfair'
+    include
+      customer,
+      operator,
+      falconx,
+      github,
+      groundcover,
+      sentry,
+      betfair,
+      bookmakerFeeds
+  }
+
+  view infraEdge of falconx {
+    title 'Infra — Request path (edge)'
+    description 'Internet → WAF → CloudFront → Traefik HTTPRoute → pod. Images peel off to S3.'
+    include
+      customer,
+      operator,
+      waf,
+      cloudFront,
+      s3static,
+      traefik,
+      feB2C,
+      feB2B,
+      userSvc,
+      bettingEngine,
+      frontMarket,
+      backOffice
+  }
+
+  view infraData of falconx {
+    title 'Infra — Data plane'
+    description 'Aurora (OLTP + DA), Valkey, MSK, Debezium outbox CDC, Secrets Manager'
+    include
+      userSvc,
+      bettingEngine,
+      casino,
+      dataAggregator,
+      postgres,
+      auroraDa,
+      redis,
+      kafka,
+      debezium,
+      secretsMgr
+  }
+
+  view infraDelivery {
+    title 'Infra — Ship path (GitOps)'
+    description 'CI pushes ECR and bumps GitOps. Argo CD syncs pods. No kubectl apply for product apps.'
+    include
+      github,
+      falconx.ecr,
+      falconx.argoCD,
+      falconx.feB2C,
+      falconx.bettingEngine,
+      falconx.feB2B
+  }
+
+  view infraObservability {
+    title 'Infra — Observability'
+    description 'Groundcover sensor in-cluster; Sentry for errors. Perf has no extra sensor — same develop cluster.'
+    include
+      falconx.bettingEngine,
+      falconx.gcSensor,
+      falconx.feB2C,
+      groundcover,
+      sentry
+  }
+
+  deployment view infraAccounts {
+    title 'Infra — AWS accounts'
+    description 'Develop and perf share 460195068944. Prod is 389068786427. Region eu-west-2.'
+    include
+      accDev,
+      accProd
+  }
+
+  deployment view infraDevelop {
+    title 'Infra — Develop + perf deployment'
+    description 'One VPC, one EKS, two app namespaces. Shared Aurora/MSK. Separate Valkey/Debezium/CloudFront overlays for perf.'
+    include
+      accDev.**
+  }
+
+  deployment view infraProd {
+    title 'Infra — Production deployment'
+    description 'Own VPC, cluster, data plane, CloudFront on bigbash.site'
+    include
+      accProd.**
+  }
+}

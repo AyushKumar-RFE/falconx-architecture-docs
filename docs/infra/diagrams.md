@@ -1,6 +1,8 @@
 # Visual map
 
-Skim this page first. Each diagram is one idea. Captions are short on purpose — details live on the linked pages.
+Skim this page first. Each diagram is one idea. Captions are short on purpose.
+
+**Want the repo-by-repo detail** (every Terraform stack, Argo add-on, CI workflow)? Start at [Four repos](/infra/repos/).
 
 ## 1. The whole system
 

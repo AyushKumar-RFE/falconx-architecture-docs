@@ -253,9 +253,10 @@ views {
   }
 
   view of falconx {
-    title 'FalconX — Containers (AWS)'
-    description 'EKS (apps) · Lambda (settlement) · Aurora · ElastiCache · MSK. Amber dotted edges = poll/sync loops.'
+    title 'FalconX — Containers (apps)'
+    description 'EKS (apps) · Lambda (settlement) · Aurora · ElastiCache · MSK. Amber dotted edges = poll/sync loops. Edge/GitOps live in Infra views.'
     include *
+    exclude waf, cloudFront, traefik, argoCD, ecr, s3static, secretsMgr, auroraDa, debezium, gcSensor
   }
 
   view money of falconx {
