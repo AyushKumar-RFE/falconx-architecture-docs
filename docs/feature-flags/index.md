@@ -1,6 +1,9 @@
 # Feature flags
 
-Kill-switches and staged rollouts. **No LaunchDarkly / Unleash** — flags live as env vars (GitOps) or PostHog (frontends).
+BigBash does not use a dedicated feature-flag SaaS (LaunchDarkly, Unleash, etc.). Instead:
+- Environment variables set in GitOps Helm values (custom-values.yaml) setting the flags directly inside the  container.
+- For Frontends (B2B/B2C), We use PostHog remote flags (the env var usually only holds the flag key; on/off is in PostHog), Frontends also have plain env flags (NEXT_PUBLIC_ENABLE_*, NEXT_PUBLIC_DISPLAY_*, etc.) — those are on/off from env alone, not PostHog.
+
 
 ## How they work
 
@@ -18,18 +21,82 @@ Local compose uses each service’s `.env` / `env.local`. Prod values in gitops 
 
 ## FrontMarket ownership (`FRONTMARKET_OWNS_*`)
 
-Pattern: FrontMarket serves a BettingEngine (or sibling) **read path**. Flag = case-insensitive `"true"` only.
+### What is this?
 
-| Family | What it does | Notes |
+Many **read** APIs used to live only on BettingEngine (PnL, bets list, odds, etc.).
+FrontMarket can now answer those same reads itself (usually from Redis/cache).
+
+Each `FRONTMARKET_OWNS_<THING>` flag is a simple on/off switch:
+
+- **`"true"`** → FrontMarket handles that read
+- **anything else / unset** → treat as off (FrontMarket code checks case-insensitive `"true"` only)
+
+Why so many flags? So we can move **one endpoint at a time** from BettingEngine → FrontMarket, and roll back one endpoint without turning everything off.
+
+### Where do you flip them?
+
+| Env | File in `rfetech-gitops` |
+|---|---|
+| develop | `helm-charts/helm-overrides/fantasy7-develop/frontmarket/custom-values.yaml` |
+| perf | `helm-charts/helm-overrides/fantasy7-perf/frontmarket/custom-values.yaml` |
+| prod | `helm-charts/helm-overrides/fantasy7-prod/frontmarket/custom-values.yaml` |
+
+Look under `deployment.envs` in that YAML. Today on **develop**, the ownership flags below are set to `"true"`.
+
+Code that reads them lives mainly in FrontMarket: `pkg/domain/betfair`, `fancy`, `bookmaker` (plus related packages for the non-OWNS flags below).
+
+### Ownership flags (one flag = one capability)
+
+| Flag | FrontMarket owns… |
+|---|---|
+| `FRONTMARKET_OWNS_PNL_USER` | User PnL |
+| `FRONTMARKET_OWNS_PNL_MARKETS` | Event markets PnL |
+| `FRONTMARKET_OWNS_PNL_USER_ACCOUNTS` | PnL user-accounts |
+| `FRONTMARKET_OWNS_PROMOTED_EVENTS` | Promoted events |
+| `FRONTMARKET_OWNS_FAVOURITE_EVENTS` | Favourite events |
+| `FRONTMARKET_OWNS_USER_BETS` | User bets (`/betting/bets`) |
+| `FRONTMARKET_OWNS_MARKET_RUNNERS_PNL` | Market runners PnL |
+| `FRONTMARKET_OWNS_STACK_BUTTONS` | Stack buttons |
+| `FRONTMARKET_OWNS_EVENT_LIVE_PNL` | Live PnL |
+| `FRONTMARKET_OWNS_BETTICKER` | Betticker |
+| `FRONTMARKET_OWNS_BETFAIR_ODDS` | Betfair odds |
+| `FRONTMARKET_OWNS_EVENT_SERVICES` | Event services |
+| `FRONTMARKET_OWNS_MARKET_CASHOUT_CONFIG` | Market cashout config |
+| `FRONTMARKET_OWNS_EVENTS_BY_SPORT` | Events by sport |
+| `FRONTMARKET_OWNS_BOOKMAKER_CASHOUT` | Bookmaker cashout admin path |
+| `FRONTMARKET_OWNS_EVENTS_BY_IDS` | Events by ids |
+| `FRONTMARKET_OWNS_BETS_COUNT` | Bets count |
+| `FRONTMARKET_OWNS_BOOKMAKER_RUNNER_ODDS` | Bookmaker runner odds |
+| `FRONTMARKET_OWNS_BOOKMAKER_EVENT_MARKETS_ODDS` | Bookmaker event markets odds |
+| `FRONTMARKET_OWNS_FANCY_EVENTS_ODDS` | Fancy events/odds |
+| `FRONTMARKET_OWNS_FANCY_EVENT_MARKETS` | Fancy event markets |
+
+### Related FrontMarket flags (same YAML, not `OWNS_*`)
+
+These are **also** set on the FrontMarket `custom-values.yaml`, but they are not ownership migrations — they turn features/caches on or off.
+
+| Flag | What it does | Notes |
 |---|---|---|
-| `FRONTMARKET_OWNS_*` (PnL, bets, odds, fancy, bookmaker, stack-buttons, …) | FrontMarket owns that route/cache path | Paired MDM clients: `READ_*_VIA_FRONTMARKET` (still mostly **off** — FM owns the path; MDM URL swap is separate) |
-| `COMPETITION_WINNER_MARKET_ENABLED` | Registers `GET /aggregator/competition/markets` | Default off |
-| `SSE_ODDS_ENABLED` | Registers `GET /stream/odds` | Soak; do not promote lightly |
-| `DASHBOARD_BLOB_L1_CACHE_ENABLED` | In-process L1 for dashboard blob | |
-| `FRONTMARKET_ODDS_CACHE_ENABLED` | Per-market odds cache | Code default **on**; prod may kill-switch **off** |
-| `BETTOR_CHILD_ACCOUNTS_USE_GOUSER` | Bettor downline via GoUser / go-datastore | Also on BettingEngine |
+| `COMPETITION_WINNER_MARKET_ENABLED` | Exposes `GET /aggregator/competition/markets` | Off in code until env is `"true"` |
+| `SSE_ODDS_ENABLED` | Exposes `GET /stream/odds` (live odds stream) | Soak carefully before promoting |
+| `DASHBOARD_BLOB_L1_CACHE_ENABLED` | In-process cache for dashboard blob | |
+| `FRONTMARKET_ODDS_CACHE_ENABLED` | Per-market odds cache | **On** by default in code; prod YAML may set `"false"` to kill it |
+| `BETTOR_CHILD_ACCOUNTS_USE_GOUSER` | Load bettor downline via GoUser | Also exists on BettingEngine; develop FrontMarket sets `"true"` |
 
-Canonical checks: `FrontMarket` domain packages (`betfair`, `fancy`, `bookmaker`, `stream`, `aggregator`).
+### ManualDataManagement is separate
+
+MDM can call FrontMarket instead of BettingEngine for a few reads. That is a **different** switch, in a **different** YAML:
+
+`helm-charts/helm-overrides/fantasy7-{env}/manualdatamanagement/custom-values.yaml`
+
+| Flag | Meaning |
+|---|---|
+| `READ_MARKET_RUNNERS_PNL_VIA_FRONTMARKET` | MDM calls FrontMarket for that read |
+| `READ_EVENT_DETAILS_VIA_FRONTMARKET` | same |
+| `READ_BETS_COUNT_VIA_FRONTMARKET` | same |
+| `FRONTMARKET_SERVICE_URL` | Base URL MDM uses when those reads are on |
+
+Even if FrontMarket already “owns” the path (`FRONTMARKET_OWNS_*=true`), MDM still talks to BettingEngine until these `READ_*` flags are `"true"`. On develop they are still **`"false"`**.
 
 ---
 
