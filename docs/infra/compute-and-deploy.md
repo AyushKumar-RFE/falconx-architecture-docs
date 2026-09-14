@@ -1,6 +1,8 @@
 # Compute & deploy
 
-Workloads run on **EKS**. Delivery is **GitOps**: CI pushes an image and a git tag; Argo CD makes the cluster match.
+Workloads run on **EKS**. Nodes come from **Karpenter** (Auto Mode). Delivery is **GitOps**: CI pushes an image and a git tag; Argo CD makes the cluster match.
+
+Cluster, NodePools, node death: [Kubernetes](/infra/kubernetes). Secrets CSI: [IAM & secrets](/infra/iam-and-secrets). “Which file?”: [Changes](/infra/changes).
 
 ```mermaid
 flowchart LR
@@ -77,6 +79,12 @@ Never tag `latest`. Rollback = revert the GitOps commit (`rollback.yml`), not `k
 
 Coordinated releases: “The Big Bash” / “The Patch” / `ship-release.yml`.
 
+## Settlement Lambdas (not GitOps)
+
+BettingEngine can trigger **AWS Lambda** on a settlement path (EventBridge → SQS → Lambda — C4 **Money path**). Images ship with `rfetech-github-actions` `build-lambda.yml` (SAM / CloudFormation). Argo CD does not deploy those functions. LocalStack needs `ssm` for `/rfe/lambda/vpc/*`. SAM templates live in the service repo, not in GitOps.
+
+Heat-event scale of Aurora / MSK / ElastiCache: GitOps `scale-data-plane.yml` (IAM role in Terraform).
+
 ## Secrets
 
 ```mermaid
@@ -86,10 +94,8 @@ flowchart LR
   Helm[custom-values.yaml] -.->|secretProvider class only| CSI
 ```
 
-No credentials in Helm values. PreSync jobs wait until SecretProviderClass exists.
-
-**Not GitOps:** settlement Lambdas (`build-lambda.yml`). Heat-event scale: `scale-data-plane.yml`.
+No credentials in Helm values. PreSync jobs wait until SecretProviderClass exists. Detail: [IAM & secrets](/infra/iam-and-secrets).
 
 Local: `falconx-local-dev:latest` + `make redeploy`. No Argo on a laptop.
 
-[Visual map](/infra/diagrams)
+[Visual map](/infra/diagrams) · [Dependencies](/infra/dependencies)

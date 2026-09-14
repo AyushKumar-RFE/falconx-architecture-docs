@@ -88,6 +88,16 @@ flowchart LR
   Rel --> ProdNS[ECR -prod → ns production]
 ```
 
-Autoscaling is forced **off** in develop and perf ApplicationSets. Prod uses HPA.
+Autoscaling is forced **off** in develop and perf ApplicationSets. Prod uses HPA. Prod GitOps PRs require `infra-team`. Prod Terraform apply is the **manual** `github-aws-int.yaml` workflow (`workflow_dispatch` + approval), not a casual laptop apply.
+
+## Before you modify an environment
+
+| If you are changing… | Start here |
+|---|---|
+| Hostnames, WAF mode, VPC | [Networking](/infra/networking) then [Changes](/infra/changes) |
+| Node types / Pending pods | [Kubernetes](/infra/kubernetes) |
+| Kafka topics, Aurora size | [Data stores](/infra/data-stores) |
+| Helm replicas / HTTPRoute | [Compute & deploy](/infra/compute-and-deploy) |
+| A new vendor URL | [Dependencies](/infra/dependencies) |
 
 [Visual map](/infra/diagrams) · [Compute & deploy](/infra/compute-and-deploy)

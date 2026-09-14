@@ -77,6 +77,8 @@ flowchart LR
   M --> P[bump ref= in rfetech-infra PR]
 ```
 
-Prod apply goes through `github-aws-int.yaml` (infra-team approval), not a casual laptop apply.
+Prod apply is the **manual** `github-aws-int.yaml` workflow (`workflow_dispatch`, infra-team approval), not a casual laptop apply and not apply-on-merge.
+
+Step-by-step “which file, which PR”: [Changes](/infra/changes). New module/stack: [Creating things](/infra/repos/creating).
 
 [Visual map](/infra/diagrams)
