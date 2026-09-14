@@ -4,7 +4,8 @@ How BigBash is hosted, shipped, and operated — **pictures first**.
 
 Config (CIDRs, replica counts, image tags) stays in the four infra repos. This site narrates. If a number here and Terraform disagree, Terraform wins — then update this page. Never paste secrets here.
 
-**Start here:** [Visual map](/infra/diagrams) — twelve flowcharts covering the whole path.
+**Pictures:** [Visual map](/infra/diagrams)  
+**Detail by repo:** [Four repos](/infra/repos/) — every Terraform stack, Argo add-on, and CI workflow.
 
 ## The four repos
 
@@ -29,12 +30,12 @@ flowchart LR
   A --> G --> EKS
 ```
 
-| Repo | Open it when… |
-|---|---|
-| **tf-modules** | Changing *how* an AWS resource is built for every env |
-| **rfetech-infra** | Creating or resizing something in develop / perf / prod |
-| **rfetech-gitops** | Replicas, routes, secret mounts, add-ons, new service |
-| **rfetech-github-actions** | Build, scan, or ship behaviour |
+| Repo | Open it when… | Full page |
+|---|---|---|
+| **tf-modules** | Changing *how* an AWS resource is built for every env | [tf-modules](/infra/repos/tf-modules) |
+| **rfetech-infra** | Creating or resizing something in develop / perf / prod | [rfetech-infra](/infra/repos/rfetech-infra) |
+| **rfetech-gitops** | Replicas, routes, secret mounts, add-ons, new service | [rfetech-gitops](/infra/repos/rfetech-gitops) |
+| **rfetech-github-actions** | Build, scan, or ship behaviour | [github-actions](/infra/repos/rfetech-github-actions) |
 
 Laptop compose is **Local-dev-setup**, not cloud infra. [Local stack](/infra/local-stack).
 
@@ -64,6 +65,7 @@ Full sequences: [Visual map](/infra/diagrams) · [Networking](/infra/networking)
 | Page | Question |
 |---|---|
 | [Visual map](/infra/diagrams) | Show me everything as diagrams |
+| [Four repos](/infra/repos/) | What each GitHub repo owns (detailed) |
 | [Environments](/infra/environments) | Where does code run? What is shared? |
 | [Provisioning](/infra/provisioning) | How is AWS created? |
 | [Networking](/infra/networking) | How does traffic enter? |

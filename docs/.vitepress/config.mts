@@ -72,6 +72,16 @@ export default withMermaid(
               { text: 'Local & isolated stack', link: '/infra/local-stack' },
             ],
           },
+          {
+            text: 'Repos',
+            items: [
+              { text: 'Four repos', link: '/infra/repos/' },
+              { text: 'tf-modules', link: '/infra/repos/tf-modules' },
+              { text: 'rfetech-infra', link: '/infra/repos/rfetech-infra' },
+              { text: 'rfetech-gitops', link: '/infra/repos/rfetech-gitops' },
+              { text: 'rfetech-github-actions', link: '/infra/repos/rfetech-github-actions' },
+            ],
+          },
         ],
         '/adr/': [
           {
