@@ -7,6 +7,8 @@ Config (CIDRs, replica counts, image tags) stays in the four infra repos. This s
 **Pictures:** [Visual map](/infra/diagrams)  
 **Detail by repo:** [Four repos](/infra/repos/) — every Terraform stack, Argo add-on, and CI workflow.
 
+Written C4 (interactive): [C4 workspace](/c4/) — product containers plus infra edge, data plane, GitOps, and AWS deploy views.
+
 ## The four repos
 
 ```mermaid

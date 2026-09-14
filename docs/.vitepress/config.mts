@@ -37,7 +37,7 @@ export default withMermaid(
           {
             text: 'C4 model',
             items: [
-              { text: 'Overview', link: '/c4/' }
+              { text: 'Overview', link: '/c4/' },
             ],
           },
         ],
