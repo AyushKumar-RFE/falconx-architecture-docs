@@ -74,4 +74,4 @@ If you edit the wrong layer, the change either will not apply, or will apply eve
 - If this page and Terraform disagree, Terraform wins — then update this page.
 - Promoting architecture: ADR here → implement in the repo that owns the config → merge in dependency order (modules → infra → gitops / actions).
 
-Read next: pick a repo page in the sidebar, or start with [tf-modules](/infra/repos/tf-modules) if you need to understand AWS construction.
+Read next: [Creating things in the four repos](/infra/repos/creating) (new service, module, stack, add-on, CI), then pick a repo page.

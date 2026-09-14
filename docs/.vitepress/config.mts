@@ -76,6 +76,7 @@ export default withMermaid(
             text: 'Repos',
             items: [
               { text: 'Four repos', link: '/infra/repos/' },
+              { text: 'Creating things', link: '/infra/repos/creating' },
               { text: 'tf-modules', link: '/infra/repos/tf-modules' },
               { text: 'rfetech-infra', link: '/infra/repos/rfetech-infra' },
               { text: 'rfetech-gitops', link: '/infra/repos/rfetech-gitops' },

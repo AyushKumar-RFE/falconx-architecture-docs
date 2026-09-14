@@ -5,7 +5,7 @@ How BigBash is hosted, shipped, and operated — **pictures first**.
 Config (CIDRs, replica counts, image tags) stays in the four infra repos. This site narrates. If a number here and Terraform disagree, Terraform wins — then update this page. Never paste secrets here.
 
 **Pictures:** [Visual map](/infra/diagrams)  
-**Detail by repo:** [Four repos](/infra/repos/) — every Terraform stack, Argo add-on, and CI workflow.
+**Detail by repo:** [Four repos](/infra/repos/) · [Creating things](/infra/repos/creating) (new service / module / stack / add-on / CI)
 
 Written C4 (interactive): [C4 workspace](/c4/) — product containers plus infra edge, data plane, GitOps, and AWS deploy views.
 
@@ -68,6 +68,7 @@ Full sequences: [Visual map](/infra/diagrams) · [Networking](/infra/networking)
 |---|---|
 | [Visual map](/infra/diagrams) | Show me everything as diagrams |
 | [Four repos](/infra/repos/) | What each GitHub repo owns (detailed) |
+| [Creating things](/infra/repos/creating) | How to add a service, module, stack, add-on, or workflow |
 | [Environments](/infra/environments) | Where does code run? What is shared? |
 | [Provisioning](/infra/provisioning) | How is AWS created? |
 | [Networking](/infra/networking) | How does traffic enter? |
