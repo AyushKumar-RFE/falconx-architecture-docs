@@ -2,7 +2,9 @@
 
 Skim this page first. Each diagram is one idea. Captions are short on purpose.
 
-**Want the repo-by-repo detail** (every Terraform stack, Argo add-on, CI workflow)? Start at [Four repos](/infra/repos/).
+**Want the repo-by-repo detail?** [Four repos](/infra/repos/) · [Creating things](/infra/repos/creating)
+
+The three flows to learn first: **[request](#2-a-user-request)** · **[ship](#3-a-code-change)** · **[data / CDC](#7-data-plane)**. Each diagram below has hop-by-hop notes.
 
 ## 1. The whole system
 
@@ -54,7 +56,7 @@ flowchart TB
 
 ## 2. A user request
 
-Browser never talks to a pod. CloudFront is the front door. Static images stop at S3.
+The browser never talks to a Kubernetes pod. DNS for `bigbash.site` / `bigbash.life` points at **CloudFront**. WAF is attached to that distribution (it must live in **us-east-1**). After WAF, CloudFront either serves a **cached file from S3** or forwards into the VPC.
 
 ```mermaid
 sequenceDiagram
@@ -67,8 +69,8 @@ sequenceDiagram
   participant Aurora
   participant Valkey
 
-  User->>WAF: HTTPS
-  WAF->>CloudFront: allow / count
+  User->>WAF: HTTPS to b2c / admin / gateway host
+  WAF->>CloudFront: COUNT or BLOCK
   alt static image
     CloudFront->>S3: /B2C/images or /B2B/images
     S3-->>User: file
@@ -77,7 +79,7 @@ sequenceDiagram
     Traefik->>Pod: HTTPRoute host + path
     Pod->>Aurora: SQL
     Pod->>Valkey: cache
-    Pod-->>User: response
+    Pod-->>User: HTML / JSON / SSE
   end
 ```
 
@@ -91,15 +93,21 @@ flowchart LR
   R --> P[service pod]
 ```
 
-Prod hosts: `bigbash.site` (B2C), `admin.bigbash.site` (B2B), `gateway-prod.bigbash.site` (APIs). Develop/perf use the same roles on `bigbash.life`.
+**Hop by hop**
 
-[Networking](/infra/networking)
+1. **DNS** — Prod: `bigbash.site` (B2C), `admin.bigbash.site` (B2B), `gateway-prod.bigbash.site` (APIs). Develop/perf: same three roles on `bigbash.life` with `-develop` / `-perf`. ExternalDNS keeps Route53 in sync from HTTPRoute hostnames.
+2. **WAF** — Rate limits (gateway vs B2C vs B2B, auth vs anonymous, global ceiling), AWS managed rules, optional maintenance kill-switch. **COUNT** = log only (develop/prod today). **BLOCK** = enforce (perf). A 403 here never reached Traefik.
+3. **CloudFront** — Terminates TLS. Path `/B2C/images/*` and `/B2B/images/*` go to S3 + OAC. Everything else is a **VPC origin** to an **internal** NLB (not on the public internet).
+4. **Traefik CloudFront** — In namespace `traefik-cloudfront`. Gateway API `HTTPRoute` matches **host + path** (example: `gateway-prod.bigbash.site` `/frontmarket` → FrontMarket). A second Traefik (`traefik-external`) is for Grafana and tools, not this public product path.
+5. **Pod** — ClusterIP Service. Reads Aurora and/or Valkey. Response goes back the same way. There is no service mesh.
+
+If this hop fails, see [Networking](/infra/networking). Interactive C4: **Infra — Request path**.
 
 ---
 
 ## 3. A code change
 
-No `kubectl apply`. CI writes git. Argo CD copies git onto the cluster.
+Nobody `kubectl apply`s product apps. The service repo calls **reusable workflows**. Those workflows push an image and **commit a tag in GitOps**. Argo CD is the only thing that talks to the Kubernetes API for that deploy.
 
 ```mermaid
 sequenceDiagram
@@ -130,7 +138,17 @@ flowchart LR
   R --> NS3[namespace production]
 ```
 
-[Compute & deploy](/infra/compute-and-deploy) · [Environments](/infra/environments)
+**Hop by hop**
+
+1. **Push** — `main` → develop, `performance` → perf, `release/vX.Y.Z` → prod. Manual deploys also check branch + `infra-team`.
+2. **Qualify** — `sonar.yml` + `trivy-fs-scan.yml` (+ lint). `quality-gate.yml` sets `proceed`. A reusable-workflow crash must not hide other checks — keep extra tests in a **sibling** workflow.
+3. **Build** — `extract-version.yml` makes tag **`V{run}-{semver}`** (never `latest`). `build-docker-image.yml` Buildx + image scan; `push-ecr-image.yml` writes `{service}-{develop|perf|prod}` in ECR `eu-west-2`.
+4. **GitOps** — `update-helm-charts.yml` sets `deployment.image.tag` in `helm-overrides/fantasy7-<env>/<service>/custom-values.yaml` (rebase retry if two ships collide).
+5. **Argo CD** — ApplicationSet already points that folder at chart `helm-templates/1.0.0`. It syncs the Deployment in `development` / `performance` / `production`. Rollback = **revert that GitOps commit**, not `kubectl rollout undo`.
+
+Settlement Lambdas skip this path (`build-lambda.yml` / SAM). C4: **Infra — Ship path**.
+
+[Compute & deploy](/infra/compute-and-deploy) · [Environments](/infra/environments) · [Creating things](/infra/repos/creating)
 
 ---
 
@@ -247,7 +265,7 @@ flowchart TB
 
 ## 7. Data plane
 
-One Aurora for OLTP (database per service). Second Aurora for Data Aggregator. Kafka for async. Debezium copies outbox rows so consumers never poll OLTP.
+Synchronous work is SQL + cache. Asynchronous work is **Kafka**. Three services also write an **outbox table in the same Postgres transaction** as the business row. Debezium (MSK Connect) copies those rows to Kafka so consumers like DataAggregator **never poll OLTP**.
 
 ```mermaid
 flowchart LR
@@ -284,9 +302,16 @@ flowchart LR
   BE --> Bus
 ```
 
-Connectors: userservice, bettingengine, casinomanagement. Topic prefixes: `develop_*` / `perf_*` on the **same** MSK cluster; `prod_*` on prod MSK.
+**Hop by hop**
 
-[Data stores](/infra/data-stores)
+1. **API** — e.g. BettingEngine writes the bet **and** an `outbox_events` row in one transaction on **aurora main** (database/schema per service).
+2. **Debezium** — Connector `{env}-{service}-outbox-connector` for **userservice**, **bettingengine**, **casinomanagement**. Plugin ZIP on env S3. Needs `rds.logical_replication=1`.
+3. **MSK** — Topics are Terraform, prefix `develop_*` / `perf_*` on shared `rfe-kafka`, `prod_*` on prod. Families include `bet_placed`, `market_settlement`, `user_sync`, plus `failed_*` and `dlq_*` twins. Apps do not auto-create topics.
+4. **Consumer** — DataAggregator reads Kafka and writes **aurora-da**. Other consumers subscribe to domain topics BettingEngine produces directly (not only CDC).
+5. **Cache / bus** — Valkey is odds, sessions, pub/sub (cluster-mode). EventBridge `bus_{env}` is market-closure style events, not the main bet bus.
+6. **Sharing** — Perf **shares** develop Aurora + MSK (different topic prefix + own Debezium + own Valkey). Prod shares nothing.
+
+C4: **Infra — Data plane**. Detail: [Data stores](/infra/data-stores).
 
 ---
 
