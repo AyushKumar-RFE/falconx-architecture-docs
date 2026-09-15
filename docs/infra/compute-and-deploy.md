@@ -81,7 +81,7 @@ Coordinated releases: “The Big Bash” / “The Patch” / `ship-release.yml`.
 
 ## Settlement Lambdas (not GitOps)
 
-BettingEngine can trigger **AWS Lambda** on a settlement path (EventBridge → SQS → Lambda — C4 **Money path**). Images ship with `rfetech-github-actions` `build-lambda.yml` (SAM / CloudFormation). Argo CD does not deploy those functions. LocalStack needs `ssm` for `/rfe/lambda/vpc/*`. SAM templates live in the service repo, not in GitOps.
+BettingEngine can trigger **AWS Lambda** on a settlement path (EventBridge → SQS → Lambda). Images ship with `rfetech-github-actions` `build-lambda.yml` (SAM / CloudFormation). Argo CD does not deploy those functions. LocalStack needs `ssm` for `/rfe/lambda/vpc/*`. SAM templates live in the service repo, not in GitOps.
 
 Heat-event scale of Aurora / MSK / ElastiCache: GitOps `scale-data-plane.yml` (IAM role in Terraform).
 

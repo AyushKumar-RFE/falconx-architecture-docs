@@ -18,8 +18,6 @@ npm run build         # export into docs site + VitePress
 |---|---|
 | System context | Who uses FalconX? What is outside (Betfair, bookmaker feeds)? |
 | Containers (apps) | Which EKS services, Lambda, Aurora, Valkey, MSK exist and how they talk |
-| Money path | Place-bet → User / Bets / settlement Lambda |
-| Odds & catalogue | Stream vs poll into FrontMarket / Markets |
 
 ### Infrastructure (platform)
 

@@ -80,7 +80,7 @@ model {
       style { icon tech:go }
     }
 
-    // ── Money path ───────────────────────────────────────────────
+    // ── Betting / settlement ─────────────────────────────────────
     userSvc = eks 'User' {
       technology 'Python / FastAPI · EKS'
       description 'Identity, wallets, hierarchy (:8001)'
@@ -101,7 +101,7 @@ model {
       description 'Async settlement workers (EventBridge → SQS → Lambda). Secrets read at runtime.'
     }
 
-    // ── Odds & catalogue ─────────────────────────────────────────
+    // ── Odds / markets ───────────────────────────────────────────
     betfairStreaming = eks 'BetfairStreaming' {
       technology 'Go · EKS'
       description 'stream (push) | catalogue-sync (loop) | dlq-worker'
@@ -193,7 +193,7 @@ model {
     feB2C -> userSvc 'Auth / wallet (HTTPS)'
     feB2B -> backOffice 'Operate (HTTPS)'
 
-    // Money
+    // Betting / settlement
     bettingEngine -> userSvc 'Limits / balances'
     bettingEngine -> bets 'Persist bets'
     bettingEngine -> settlement 'Settle via EventBridge/SQS (async)'
@@ -257,41 +257,5 @@ views {
     description 'EKS (apps) · Lambda (settlement) · Aurora · ElastiCache · MSK. Amber dotted edges = poll/sync loops. Edge/GitOps live in Infra views.'
     include *
     exclude waf, cloudFront, traefik, argoCD, ecr, s3static, secretsMgr, auroraDa, debezium, gcSensor
-  }
-
-  view money of falconx {
-    title 'Money path'
-    description 'EKS APIs + Lambda settlement + Aurora/ElastiCache/MSK'
-    include
-      customer,
-      feB2C,
-      userSvc,
-      bettingEngine,
-      bets,
-      settlement,
-      postgres,
-      kafka,
-      redis
-  }
-
-  view odds of falconx {
-    title 'Odds & catalogue'
-    description 'Push stream vs poll/sync (amber dotted). Confirm exact intervals in each worker/service config.'
-    include
-      betfair,
-      emulators,
-      betfairStreaming,
-      dataAggregator,
-      bookmakerData,
-      fancyData,
-      manualData,
-      frontMarket,
-      markets,
-      marketsProxy,
-      redis,
-      kafka,
-      postgres,
-      feB2C,
-      customer
   }
 }
