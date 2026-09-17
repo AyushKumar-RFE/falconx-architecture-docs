@@ -1,10 +1,14 @@
 # Infrastructure handbook
 
-This is the **entry point** for how BigBash runs in the cloud. Config (CIDRs, replica counts, image tags, Terraform variables) lives in four GitHub repos. **This site explains.** If a number here and Terraform disagree, Terraform wins — then update this page.
+This is **supporting detail** for the [architecture baseline](/architecture/). Start with the production diagram; use this handbook when you need why, failure modes, or which file to edit.
+
+Config (CIDRs, replica counts, image tags, Terraform variables) lives in four GitHub repos. **This site explains.** If a number here and Terraform disagree, Terraform wins — then update the baseline diagram and this page.
 
 Never paste secrets, passwords, or full Helm values here.
 
-**New here?** Read this page, then the [Visual map](/infra/diagrams) (three flows), then [Where to change](/infra/changes). Interactive pictures: [C4 workspace](/c4/).
+**New here?** Open the [architecture baseline](/architecture/) first (one-page prod diagram). Then this page, then the [Visual map](/infra/diagrams) (three flows), then [Where to change](/infra/changes). Interactive C4: [C4 workspace](/c4/).
+
+**Presenting this to others?** Walk the [architecture baseline](/architecture/) first, then this handbook.
 
 ## What the system is
 
@@ -99,6 +103,7 @@ Hop-by-hop (request, ship, outbox CDC): [Visual map](/infra/diagrams). Infra PRs
 
 | I need… | Page |
 |---|---|
+| **The picture we design against** | [Architecture baseline](/architecture/) |
 | Pictures of every flow | [Visual map](/infra/diagrams) |
 | Interactive C4 | [C4](/c4/) |
 | Develop vs perf vs prod | [Environments](/infra/environments) |

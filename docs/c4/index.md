@@ -1,6 +1,6 @@
 # C4 model
 
-C4 is **Context, Containers, Components, and Code**. We maintain a [LikeC4](https://likec4.dev) model under `/c4` (ADR 0003). Mermaid stays on the [infra](/infra/) pages for sequences; LikeC4 is the navigable topology.
+C4 is **Context, Containers, Components, and Code**. We maintain a [LikeC4](https://likec4.dev) model under `/c4` (ADR 0003). The **current-state baseline we design against** is the AWS Level 1 diagram on [Architecture](/architecture/). LikeC4 is Level 2: interactive drill-down. Mermaid stays on the [infra](/infra/) pages for sequences.
 
 ## **[Open interactive diagrams](/c4-workspace/)** (use this)
 
@@ -37,4 +37,4 @@ Source files: `c4/model.c4` (product) and `c4/infra.c4` (platform, deployment).
 
 We do **not** model the Code level — it would rot immediately.
 
-Written walkthrough of the same platform: [Infra](/infra/) · [Visual map](/infra/diagrams) · [Repos](/infra/repos/).
+Written walkthrough of the same platform: [Architecture baseline](/architecture/) · [Infra handbook](/infra/) · [Visual map](/infra/diagrams) · [Repos](/infra/repos/).

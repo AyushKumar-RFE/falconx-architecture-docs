@@ -25,6 +25,13 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - name: Render AWS architecture diagrams
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+          python3 -m venv architecture/.venv
+          architecture/.venv/bin/pip install -r architecture/requirements.txt
+          architecture/.venv/bin/python architecture/render.py
       - name: Validate C4 + build site
         env:
           # GitHub project Pages: https://<user>.github.io/falconx-architecture-docs/
