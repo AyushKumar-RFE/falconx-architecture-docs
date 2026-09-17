@@ -21,6 +21,7 @@ export default withMermaid(
     themeConfig: {
       nav: [
         { text: 'Home', link: '/' },
+        { text: 'Architecture', link: '/architecture/' },
         { text: 'C4', link: '/c4/' },
         {
           text: 'Open C4 Diagrams',
@@ -33,6 +34,12 @@ export default withMermaid(
         { text: 'ADRs', link: '/adr/' },
       ],
       sidebar: {
+        '/architecture/': [
+          {
+            text: 'Architecture',
+            items: [{ text: 'Baseline (prod)', link: '/architecture/' }],
+          },
+        ],
         '/c4/': [
           {
             text: 'C4 model',
@@ -62,6 +69,7 @@ export default withMermaid(
             text: 'Handbook',
             items: [
               { text: 'Overview', link: '/infra/' },
+              { text: 'Architecture baseline', link: '/architecture/' },
               { text: 'Visual map', link: '/infra/diagrams' },
               { text: 'Environments', link: '/infra/environments' },
               { text: 'Kubernetes', link: '/infra/kubernetes' },
@@ -101,6 +109,10 @@ export default withMermaid(
               },
               { text: '0002 Git docs as SSOT', link: '/adr/0002-git-docs-as-ssot' },
               { text: '0003 C4 as code with LikeC4', link: '/adr/0003-c4-as-code-likec4' },
+              {
+                text: '0004 Production architecture baseline',
+                link: '/adr/0004-production-architecture-baseline',
+              },
             ],
           },
         ],

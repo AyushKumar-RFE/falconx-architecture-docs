@@ -2,9 +2,11 @@
 
 Skim this page first. Each diagram is one idea. Captions are short on purpose.
 
+The **baseline we design against** is the [production architecture diagram](/architecture/). This page is flow detail.
+
 **Want the repo-by-repo detail?** [Four repos](/infra/repos/) · [Creating things](/infra/repos/creating)
 
-The three flows to learn first: **[request](#2-a-user-request)** · **[ship](#3-a-code-change)** · **[data / CDC](#7-data-plane)**. Plus **[infra change](#13-an-infrastructure-change)** and the **[cloud tree](#0-cloud-layout)**. Each diagram has a short “when to look” note.
+The three flows to learn first: **[request](#2-a-user-request)** · **[ship](#3-a-code-change)** · **[data / CDC](#7-data-plane)**. The **baseline we design against** is the [production architecture diagram](/architecture/), not this page.
 
 ## 0. Cloud layout
 

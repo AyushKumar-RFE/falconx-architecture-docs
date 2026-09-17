@@ -4,6 +4,8 @@ docs/.vitepress/cache/
 docs/.vitepress/dist/
 docs/public/c4/
 docs/public/c4-workspace/
+architecture/.venv/
+architecture/**/__pycache__/
 .DS_Store
 .env
 .env.*
